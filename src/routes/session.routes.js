@@ -1,0 +1,176 @@
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+
+const { authenticate }      = require('../middleware/auth');
+const SessionModel          = require('../models/session.model');
+const ResumeModel           = require('../models/resume.model');
+const JobDescriptionModel   = require('../models/jobdescription.model');
+const AnswerModel           = require('../models/answer.model');
+const { matchSkills }       = require('../utils/skillextractor');
+const { query }             = require('../config/db');
+
+const router = express.Router();
+router.use(authenticate);
+
+// POST /api/sessions
+// Creates a new interview session.
+// For 'resume_tailored': matches resume skills vs JD skills to pick relevant questions.
+// For 'quick': picks random generic questions.
+router.post(
+  '/',
+  [
+    body('sessionType')
+      .isIn(['resume_tailored', 'quick'])
+      .withMessage("sessionType must be 'resume_tailored' or 'quick'."),
+    body('resumeId').optional().isInt(),
+    body('jobDescriptionId').optional().isInt(),
+  ],
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { sessionType, resumeId, jobDescriptionId } = req.body;
+
+    try {
+      let questionIds = [];
+
+      if (sessionType === 'resume_tailored') {
+        if (!resumeId || !jobDescriptionId) {
+          return res.status(400).json({
+            error: 'resumeId and jobDescriptionId are required for resume_tailored sessions.',
+          });
+        }
+
+        // Verify ownership
+        const [resume, jd] = await Promise.all([
+          ResumeModel.findById(resumeId, req.userId),
+          JobDescriptionModel.findById(jobDescriptionId, req.userId),
+        ]);
+
+        if (!resume) return res.status(404).json({ error: 'Resume not found.' });
+        if (!jd)     return res.status(404).json({ error: 'Job description not found.' });
+
+        // Skill-matched question selection
+        const resumeSkillNames = (resume.parsed_skills || []).map((s) => s.name);
+        const jdSkillNames     = (jd.required_skills   || []).map((s) => s.name);
+        const matched          = matchSkills(resumeSkillNames, jdSkillNames);
+
+        questionIds = await selectTailoredQuestions(matched, 5, 2);
+      } else {
+        // Quick mode — random generic questions
+        const qs = await SessionModel.getGenericQuestions(7);
+        questionIds = qs.map((q) => q.id);
+      }
+
+      if (questionIds.length === 0) {
+        return res.status(422).json({
+          error: 'Could not select questions. Ensure your resume and job description have enough detail.',
+        });
+      }
+
+      const session = await SessionModel.create({
+        userId:           req.userId,
+        resumeId:         resumeId   || null,
+        jobDescriptionId: jobDescriptionId || null,
+        sessionType,
+        questionIds,
+      });
+
+      return res.status(201).json({ message: 'Session created.', session });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// GET /api/sessions  — all sessions for the current user
+router.get('/', async (req, res, next) => {
+  try {
+    const sessions = await SessionModel.findAllByUser(req.userId);
+    return res.json({ sessions });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/sessions/:id  — full session with questions and answers
+router.get('/:id', async (req, res, next) => {
+  try {
+    const session = await SessionModel.findById(req.params.id, req.userId);
+    if (!session) return res.status(404).json({ error: 'Session not found.' });
+    return res.json({ session });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/sessions/:id/complete  — mark a session as completed
+router.patch('/:id/complete', async (req, res, next) => {
+  try {
+    const session = await SessionModel.complete(req.params.id, req.userId);
+    if (!session) return res.status(404).json({ error: 'Session not found or already closed.' });
+    return res.json({ message: 'Session completed.', session });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/sessions/:id/abandon
+router.patch('/:id/abandon', async (req, res, next) => {
+  try {
+    const session = await SessionModel.abandon(req.params.id, req.userId);
+    if (!session) return res.status(404).json({ error: 'Session not found or already closed.' });
+    return res.json({ message: 'Session abandoned.', session });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/sessions/history/stats  — performance stats for dashboard
+router.get('/history/stats', async (req, res, next) => {
+  try {
+    const stats   = await AnswerModel.getStats(req.userId);
+    const history = await AnswerModel.getHistory(req.userId, 10);
+    return res.json({ stats, recentAnswers: history });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+// Pick 5 technical + 2 behavioral questions.
+// Prioritises questions whose category matches the candidate's matched skills.
+async function selectTailoredQuestions(matchedSkills, techCount, behavCount) {
+  const lowerMatched = matchedSkills.map((s) => s.toLowerCase());
+
+  // Fetch all generic technical questions
+  const { rows: techQuestions } = await query(
+    `SELECT id, category FROM questions
+     WHERE is_generic = TRUE AND type = 'technical'
+     ORDER BY RANDOM()`
+  );
+
+  // Score each question by how many matched skills relate to its category
+  const scored = techQuestions.map((q) => {
+    const catLower = (q.category || '').toLowerCase();
+    const score    = lowerMatched.filter((s) => catLower.includes(s) || s.includes(catLower)).length;
+    return { ...q, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const techIds = scored.slice(0, techCount).map((q) => q.id);
+
+  // Behavioral questions are always random
+  const { rows: behavQuestions } = await query(
+    `SELECT id FROM questions
+     WHERE is_generic = TRUE AND type = 'behavioral'
+     ORDER BY RANDOM()
+     LIMIT $1`,
+    [behavCount]
+  );
+  const behavIds = behavQuestions.map((q) => q.id);
+
+  return [...techIds, ...behavIds];
+}
+
+module.exports = router;
