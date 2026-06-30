@@ -2,7 +2,7 @@ const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
 
-const UPLOAD_DIR  = path.join(__dirname, '../../', process.env.UPLOAD_DIR || 'uploads');
+const UPLOAD_DIR  = path.join(__dirname, '../../', process.env.UPLOAD_DIR );
 const MAX_SIZE_MB = Number(process.env.MAX_FILE_SIZE_MB) || 5;
 const ALLOWED_MIME = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 const ALLOWED_EXT  = ['.pdf', '.docx'];

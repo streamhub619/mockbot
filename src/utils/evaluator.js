@@ -10,7 +10,7 @@
 // The AI-powered evaluator (Claude) is an optional enhancement called from
 // the answer route when ANTHROPIC_API_KEY is set.
 
-const { query } = require('../../config/database');
+const { query } = require('../config/db');
 
 /**
  * Evaluate an answer against a question's rubric.

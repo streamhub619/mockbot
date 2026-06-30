@@ -49,7 +49,7 @@ router.post(
         return res.status(400).json({ error: 'This question is not part of the session.' });
       }
 
-      // ── Evaluate ─────────────────────────────────────────────
+      // Evaluate
       let evaluation;
 
       if (process.env.ANTHROPIC_API_KEY) {
@@ -60,7 +60,7 @@ router.post(
         evaluation = await evaluateAnswer(questionId, answerText);
       }
 
-      // ── Persist ──────────────────────────────────────────────
+      // Persist
       const answer = await AnswerModel.upsert({
         sessionId,
         questionId,
@@ -110,7 +110,7 @@ router.get('/history', async (req, res, next) => {
   }
 });
 
-// ─── Optional AI Evaluator (Sprint 4) ────────────────────────────────────────
+// Optional AI Evaluator (Sprint 4)
 async function evaluateWithAI(questionId, answerText) {
   const { rows: [question] } = await query(
     `SELECT text, type, category, hint FROM questions WHERE id = $1`,
