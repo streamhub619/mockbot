@@ -16,10 +16,10 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":    "node src/index.js",
-    "dev":      "nodemon src/index.js",
-    "db:init":  "node db/setup.js init",
-    "db:seed":  "node db/setup.js seed",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "db:init": "node db/setup.js init",
+    "db:seed": "node db/setup.js seed",
     "db:reset": "node db/setup.js reset"
   },
   "dependencies": {
@@ -32,7 +32,7 @@
     "mammoth": "^1.12.0",
     "multer": "^2.2.0",
     "nodemon": "^3.1.14",
-    "pdf-parse": "^2.4.5",
+    "pdf-parse": "^1.1.1",
     "pg": "^8.22.0"
   }
 }

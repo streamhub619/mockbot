@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockBot — Log in</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+  /* Page-specific layout only — component styles (btn, field, card) live in design-system.css */
+  body.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6);
+  }
+  .auth-shell { width: 100%; max-width: 400px; }
+  .auth-logo { text-align: center; margin-bottom: var(--space-8); }
+  .auth-logo .mark {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .auth-logo .tagline {
+    font-size: var(--text-sm);
+    color: var(--mist);
+    margin-top: var(--space-1);
+  }
+  .auth-switch {
+    text-align: center;
+    margin-top: var(--space-6);
+    font-size: var(--text-sm);
+    color: var(--mist);
+  }
+  .auth-switch button {
+    background: none;
+    border: none;
+    color: var(--sage);
+    font-weight: 600;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    padding: 0;
+  }
+  .auth-switch button:hover { text-decoration: underline; }
+  #name-field, #confirm-field { display: none; }
+  .auth-status {
+    display: none;
+    font-size: var(--text-sm);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-4);
+    background: var(--sage-soft);
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body class="auth-page">
+
+<div class="auth-shell">
+  <div class="auth-logo">
+    <div class="mark">MockBot</div>
+    <div class="tagline">Practice at your own pace. No one's grading you here.</div>
+  </div>
+
+  <div class="card">
+    <h2 id="form-title">Welcome back</h2>
+
+    <div class="auth-status" id="status-message"></div>
+
+    <form id="auth-form" novalidate>
+      <div class="field" id="name-field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" placeholder="Jane Doe">
+        <div class="field-error" id="name-error" style="display:none;"></div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com">
+        <div class="field-error" id="email-error" style="display:none;"></div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="At least 8 characters">
+        <div class="field-error" id="password-error" style="display:none;"></div>
+      </div>
+
+      <div class="field" id="confirm-field">
+        <label for="confirm">Confirm password</label>
+        <input type="password" id="confirm" name="confirm" placeholder="Re-enter your password">
+        <div class="field-error" id="confirm-error" style="display:none;"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submit-btn" style="width:100%; justify-content:center;">Log in</button>
+    </form>
+  </div>
+
+  <div class="auth-switch">
+    <span id="switch-prompt">Don't have an account?</span>
+    <button type="button" id="switch-btn">Create one</button>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="login-script.js"></script>
+
+</body>
+</html>

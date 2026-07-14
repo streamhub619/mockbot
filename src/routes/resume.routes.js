@@ -1,17 +1,15 @@
-const express   = require('express');
-const path      = require('path');
+const express  = require('express');
+const path     = require('path');
 const fs        = require('fs');
 const pdfParse  = require('pdf-parse');
-const mammoth   = require('mammoth');
+const mammoth  = require('mammoth');
 
-const { authenticate }        = require('../middleware/auth');
-const { upload }              = require('../middleware/upload');
-const ResumeModel             = require('../models/resume.model');
-const { extractSkills }       = require('../utils/skillextractor');
+const { authenticate }  = require('../middleware/auth');
+const { upload }        = require('../middleware/upload');
+const ResumeModel       = require('../models/resume.model');
+const { extractSkills } = require('../utils/skillExtractor');
 
 const router = express.Router();
-
-// All resume routes require authentication
 router.use(authenticate);
 
 // POST /api/resumes  — upload a CV (PDF or DOCX)
@@ -21,7 +19,7 @@ router.post('/', upload.single('resume'), async (req, res, next) => {
   }
 
   try {
-    const rawText = await extractTextFromFile(req.file.path, req.file.mimetype);
+    const rawText      = await extractTextFromFile(req.file.path, req.file.mimetype);
     const parsedSkills = extractSkills(rawText);
 
     const resume = await ResumeModel.create({
@@ -42,13 +40,12 @@ router.post('/', upload.single('resume'), async (req, res, next) => {
       },
     });
   } catch (err) {
-    // Clean up the uploaded file if DB insert failed
     if (req.file?.path) fs.unlink(req.file.path, () => {});
     next(err);
   }
 });
 
-// GET /api/resumes  — list current user's resumes
+// GET /api/resumes
 router.get('/', async (req, res, next) => {
   try {
     const resumes = await ResumeModel.findAllByUser(req.userId);
@@ -58,7 +55,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// GET /api/resumes/:id  — get one resume with full text
+// GET /api/resumes/:id
 router.get('/:id', async (req, res, next) => {
   try {
     const resume = await ResumeModel.findById(req.params.id, req.userId);
@@ -76,8 +73,6 @@ router.delete('/:id', async (req, res, next) => {
     if (!resume) return res.status(404).json({ error: 'Resume not found.' });
 
     await ResumeModel.delete(req.params.id, req.userId);
-
-    // Delete the file from disk
     if (resume.file_path) fs.unlink(resume.file_path, () => {});
 
     return res.json({ message: 'Resume deleted.', id: resume.id });
@@ -86,11 +81,12 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Text extraction ──────────────────────────────────────────────────────────
 async function extractTextFromFile(filePath, mimetype) {
   if (mimetype === 'application/pdf') {
-    const buffer = fs.readFileSync(filePath);
-    const data   = await pdfParse(buffer);
+    const pdfParse = require('pdf-parse');
+    const buffer   = fs.readFileSync(filePath);
+    const data     = await pdfParse(buffer);
     return data.text;
   }
 

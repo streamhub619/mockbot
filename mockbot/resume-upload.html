@@ -85,8 +85,8 @@
       <a href="mock-roulette.html">Mock Roulette</a>
     </nav>
     <div class="dash-user">
-      <span class="dash-greeting">Hi, Asha</span>
-      <a href="login.html" class="btn btn-quiet">Log out</a>
+      <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
+      <a href="index.html" class="btn btn-quiet" class="js-logout">Log out</a>
     </div>
   </div>
 </header>
@@ -154,80 +154,12 @@
 
   <div class="gentle-hint" id="gentle-hint">Add your resume above so we can tailor the questions to you.</div>
 
-  <a href="interview-session.html" class="btn btn-primary" id="continue-btn" style="width:100%; justify-content:center;">Generate my questions</a>
+  <button type="button" class="btn btn-primary" id="continue-btn" style="width:100%; justify-content:center;"> Generate my questions </button>
 
 </main>
 
-<script>
-  const dropzone = document.getElementById('dropzone');
-  const resumeInput = document.getElementById('resume-input');
-  const dropzoneEmpty = document.getElementById('dropzone-empty');
-  const fileSelected = document.getElementById('file-selected');
-  const fileName = document.getElementById('file-name');
-  const fileSize = document.getElementById('file-size');
-  const fileRemove = document.getElementById('file-remove');
-  const continueBtn = document.getElementById('continue-btn');
-  const gentleHint = document.getElementById('gentle-hint');
-
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  }
-
-  function showFile(file) {
-    fileName.textContent = file.name;
-    fileSize.textContent = formatSize(file.size);
-    dropzoneEmpty.style.display = 'none';
-    fileSelected.style.display = 'flex';
-    dropzone.style.display = 'none';
-    gentleHint.style.display = 'none';
-  }
-
-  function clearFile() {
-    resumeInput.value = '';
-    dropzone.style.display = 'block';
-    dropzoneEmpty.style.display = 'block';
-    fileSelected.style.display = 'none';
-  }
-
-  resumeInput.addEventListener('change', () => {
-    if (resumeInput.files.length) showFile(resumeInput.files[0]);
-  });
-
-  fileRemove.addEventListener('click', (e) => {
-    e.preventDefault();
-    clearFile();
-  });
-
-  dropzone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropzone.classList.add('is-dragover');
-  });
-  dropzone.addEventListener('dragleave', () => {
-    dropzone.classList.remove('is-dragover');
-  });
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('is-dragover');
-    if (e.dataTransfer.files.length) {
-      resumeInput.files = e.dataTransfer.files;
-      showFile(e.dataTransfer.files[0]);
-    }
-  });
-
-  continueBtn.addEventListener('click', (e) => {
-    if (!resumeInput.files.length) {
-      e.preventDefault();
-      gentleHint.style.display = 'block';
-      return;
-    }
-    // --- Backend hookup goes here ---
-    // On real submit: POST the resume file + job description text + target
-    // role to the Resume/Job Description modules, then navigate to the
-    // generated interview session once questions come back.
-  });
-</script>
+<script src="api.js"></script>
+<script src="resume-upload-script.js"></script>
 
 </body>
 </html>

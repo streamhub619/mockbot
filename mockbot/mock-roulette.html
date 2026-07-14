@@ -74,8 +74,8 @@
       <a href="mock-roulette.html" class="active">Mock Roulette</a>
     </nav>
     <div class="dash-user">
-      <span class="dash-greeting">Hi, Asha</span>
-      <a href="login.html" class="btn btn-quiet">Log out</a>
+      <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
+      <a href="index.html" class="btn btn-quiet" class="js-logout">Log out</a>
     </div>
   </div>
 </header>
@@ -124,6 +124,8 @@
 
 </main>
 
+<script src="api.js"></script>
+<script src="roulette-script.js"></script>
 <script>
   // --- Backend hookup goes here ---
   // Real matching would query the Mock Roulette module for an available

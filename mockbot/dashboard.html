@@ -108,8 +108,8 @@
       <a href="mock-roulette.html">Mock Roulette</a>
     </nav>
     <div class="dash-user">
-      <span class="dash-greeting">Hi, Asha</span>
-      <a href="login.html" class="btn btn-quiet">Log out</a>
+      <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
+      <a href="index.html" class="btn btn-quiet" class="js-logout">Log out</a>
     </div>
   </div>
 </header>
@@ -126,15 +126,15 @@
 
   <section class="dash-stats">
     <div class="card stat-card">
-      <div class="stat-value">7</div>
+      <div class="stat-value" id="stat-sessions">-</div>
       <div class="stat-label">sessions completed</div>
     </div>
     <div class="card stat-card">
-      <div class="stat-value">23</div>
+      <div class="stat-value" id="stat-nailed">-</div>
       <div class="stat-label">concepts nailed</div>
     </div>
     <div class="card stat-card">
-      <div class="stat-value">5</div>
+      <div class="stat-value" id="stat-revisit">-</div>
       <div class="stat-label">worth revisiting</div>
     </div>
   </section>
@@ -145,7 +145,7 @@
         <h2 style="margin:0;">Recent sessions</h2>
         <a href="history.html" class="text-mono view-all-link">view all</a>
       </div>
-      <ul class="session-list">
+      <ul class="session-list" id="session-list-body">
         <li class="session-item">
           <div>
             <div class="session-role">Backend Engineer</div>
@@ -179,5 +179,7 @@
 
 </main>
 
+<script src="api.js"></script>
+<script src="dashboard-script.js"></script>
 </body>
 </html>
