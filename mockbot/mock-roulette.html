@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockBot — Mock Roulette</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+  .dash-header { background: var(--paper-raised); border-bottom: 1px solid var(--mist-soft); }
+  .dash-header-inner { display:flex; align-items:center; justify-content:space-between; gap:var(--space-6); padding-top:var(--space-4); padding-bottom:var(--space-4); }
+  .dash-logo { font-family:var(--font-display); font-weight:700; font-size:var(--text-lg); color:var(--ink); flex-shrink:0; }
+  .dash-nav { display:flex; gap:var(--space-6); flex:1; }
+  .dash-nav a { font-size:var(--text-sm); font-weight:500; color:var(--mist); padding-bottom:4px; border-bottom:2px solid transparent; }
+  .dash-nav a:hover { color:var(--ink); }
+  .dash-nav a.active { color:var(--ink); border-bottom-color:var(--sage); }
+  .dash-user { display:flex; align-items:center; gap:var(--space-4); flex-shrink:0; }
+  .dash-greeting { font-size:var(--text-sm); color:var(--ink-soft); }
+
+  .roulette-main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: var(--space-12) var(--space-6);
+    text-align: center;
+  }
+
+  .roulette-state { display: none; }
+  .roulette-state.is-visible { display: block; }
+
+  .roulette-state h1 { margin-bottom: var(--space-3); }
+  .roulette-state > p { color: var(--mist); margin-bottom: var(--space-8); }
+
+  .pulse-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--sage);
+    margin: 0 auto var(--space-6);
+    animation: breathe 3s ease-in-out infinite;
+  }
+  .roulette-done .pulse-circle { animation: none; background: var(--gold); }
+
+  .searching-title { margin-bottom: var(--space-2); }
+  .searching-hint { color: var(--mist); font-size: var(--text-sm); margin-bottom: var(--space-8); }
+
+  .partner-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--sage-soft); color: var(--sage);
+    font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto var(--space-4);
+  }
+  .matched-name { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 600; color: var(--ink); margin-bottom: var(--space-1); }
+  .matched-role { color: var(--mist); font-size: var(--text-sm); margin-bottom: var(--space-8); }
+
+  .round-turn-label {
+    font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist);
+    text-transform: uppercase; letter-spacing: 0.05em; margin: var(--space-2) 0 var(--space-4);
+  }
+  .round-question-card { text-align: left; margin-bottom: var(--space-6); }
+  .round-question-card h2 { margin: 0; }
+  .round-asker { font-size: var(--text-sm); color: var(--sage); font-weight: 600; margin-bottom: var(--space-2); }
+
+  .roulette-actions { display: flex; gap: var(--space-3); justify-content: center; }
+</style>
+</head>
+<body>
+
+<header class="dash-header">
+  <div class="dash-header-inner container">
+    <div class="dash-logo">MockBot</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="history.html">History</a>
+      <a href="mock-roulette.html" class="active">Mock Roulette</a>
+    </nav>
+    <div class="dash-user">
+      <span class="dash-greeting">Hi, Asha</span>
+      <a href="login.html" class="btn btn-quiet">Log out</a>
+    </div>
+  </div>
+</header>
+
+<main class="roulette-main">
+
+  <div class="roulette-state is-visible" id="state-intro">
+    <h1>Mock Roulette</h1>
+    <p>Get matched with another student. Take turns asking each other questions — no script, no pressure, just conversation.</p>
+    <button type="button" class="btn btn-primary" id="find-btn">Find a partner</button>
+  </div>
+
+  <div class="roulette-state" id="state-searching">
+    <div class="pulse-circle"></div>
+    <h2 class="searching-title">Looking for a partner…</h2>
+    <p class="searching-hint">This usually takes under a minute. Feel free to cancel anytime.</p>
+    <button type="button" class="btn btn-quiet" id="cancel-btn">Cancel</button>
+  </div>
+
+  <div class="roulette-state" id="state-matched">
+    <div class="partner-avatar" id="partner-avatar"></div>
+    <div class="matched-name" id="partner-name"></div>
+    <div class="matched-role" id="partner-role"></div>
+    <button type="button" class="btn btn-primary" id="start-session-btn">Start session</button>
+  </div>
+
+  <div class="roulette-state" id="state-session">
+    <div class="path-bar" id="round-path"></div>
+    <div class="round-turn-label" id="round-label"></div>
+    <div class="card round-question-card">
+      <div class="round-asker" id="round-asker"></div>
+      <h2 id="round-question"></h2>
+    </div>
+    <button type="button" class="btn btn-primary" id="next-round-btn"></button>
+  </div>
+
+  <div class="roulette-state roulette-done" id="state-done">
+    <div class="pulse-circle"></div>
+    <h2 class="searching-title">Nice session!</h2>
+    <p class="searching-hint">Hope that felt like a real conversation.</p>
+    <div class="roulette-actions">
+      <a href="dashboard.html" class="btn btn-secondary">Back to dashboard</a>
+      <button type="button" class="btn btn-primary" id="again-btn">Find another partner</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // --- Backend hookup goes here ---
+  // Real matching would query the Mock Roulette module for an available
+  // peer (likely over a WebSocket) instead of picking from this local list.
+  const partners = [
+    { name: "Kevin M.", role: "Frontend Engineer" },
+    { name: "Amina W.", role: "Data Analyst" },
+    { name: "Josh T.", role: "Backend Engineer" },
+    { name: "Grace N.", role: "Full-Stack Developer" }
+  ];
+
+  const rounds = [
+    { who: "you", question: "Tell me about a project you're proud of and why." },
+    { who: "them", question: "What's a technical challenge you recently solved, and how did you approach it?" },
+    { who: "you", question: "How do you handle disagreements with a teammate about a technical decision?" },
+    { who: "them", question: "What's one thing you're hoping to improve before your next real interview?" }
+  ];
+
+  let currentPartner = null;
+  let currentRound = 0;
+
+  const findBtn = document.getElementById('find-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const startSessionBtn = document.getElementById('start-session-btn');
+  const nextRoundBtn = document.getElementById('next-round-btn');
+  const againBtn = document.getElementById('again-btn');
+
+  const partnerAvatar = document.getElementById('partner-avatar');
+  const partnerName = document.getElementById('partner-name');
+  const partnerRole = document.getElementById('partner-role');
+  const roundPath = document.getElementById('round-path');
+  const roundLabel = document.getElementById('round-label');
+  const roundAsker = document.getElementById('round-asker');
+  const roundQuestion = document.getElementById('round-question');
+
+  function showState(id) {
+    document.querySelectorAll('.roulette-state').forEach(el => el.classList.remove('is-visible'));
+    document.getElementById(id).classList.add('is-visible');
+  }
+
+  function initials(name) {
+    return name.split(' ').map(p => p[0]).join('').toUpperCase();
+  }
+
+  function startSearch() {
+    showState('state-searching');
+    setTimeout(() => {
+      currentPartner = partners[Math.floor(Math.random() * partners.length)];
+      partnerAvatar.textContent = initials(currentPartner.name);
+      partnerName.textContent = currentPartner.name;
+      partnerRole.textContent = `Also practicing for a ${currentPartner.role} role`;
+      showState('state-matched');
+    }, 2200);
+  }
+
+  function renderRoundPath() {
+    roundPath.innerHTML = '';
+    rounds.forEach((_, i) => {
+      const stone = document.createElement('div');
+      stone.className = 'path-stone';
+      if (i === currentRound) stone.classList.add('is-active');
+      else if (i < currentRound) stone.classList.add('is-done');
+      roundPath.appendChild(stone);
+      if (i < rounds.length - 1) {
+        const line = document.createElement('div');
+        line.className = 'path-line';
+        roundPath.appendChild(line);
+      }
+    });
+  }
+
+  function renderRound() {
+    const round = rounds[currentRound];
+    roundLabel.textContent = `Round ${currentRound + 1} of ${rounds.length}`;
+    roundAsker.textContent = round.who === 'you'
+      ? `Your turn to ask ${currentPartner.name}`
+      : `${currentPartner.name}'s turn to ask you`;
+    roundQuestion.textContent = round.question;
+    nextRoundBtn.textContent = currentRound === rounds.length - 1 ? 'Finish session' : 'Next round →';
+    renderRoundPath();
+  }
+
+  findBtn.addEventListener('click', startSearch);
+  againBtn.addEventListener('click', startSearch);
+
+  cancelBtn.addEventListener('click', () => showState('state-intro'));
+
+  startSessionBtn.addEventListener('click', () => {
+    currentRound = 0;
+    renderRound();
+    showState('state-session');
+  });
+
+  nextRoundBtn.addEventListener('click', () => {
+    if (currentRound < rounds.length - 1) {
+      currentRound++;
+      renderRound();
+    } else {
+      showState('state-done');
+    }
+  });
+</script>
+
+</body>
+</html>

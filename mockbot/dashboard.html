@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockBot — Dashboard</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+  .dash-header {
+    background: var(--paper-raised);
+    border-bottom: 1px solid var(--mist-soft);
+  }
+  .dash-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+  .dash-logo {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-lg);
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .dash-nav { display: flex; gap: var(--space-6); flex: 1; }
+  .dash-nav a {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--mist);
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+  }
+  .dash-nav a:hover { color: var(--ink); text-decoration: none; }
+  .dash-nav a.active { color: var(--ink); border-bottom-color: var(--sage); }
+  .dash-user { display: flex; align-items: center; gap: var(--space-4); flex-shrink: 0; }
+  .dash-greeting { font-size: var(--text-sm); color: var(--ink-soft); }
+
+  .dash-main { padding-top: var(--space-8); padding-bottom: var(--space-12); }
+
+  .dash-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+  }
+  .dash-hero p { margin: 0; max-width: 440px; }
+
+  .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  .stat-card { text-align: center; }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--sage);
+  }
+  .stat-label { font-size: var(--text-sm); color: var(--mist); margin-top: var(--space-1); }
+
+  .dash-columns {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .session-list { list-style: none; margin: 0; padding: 0; }
+  .session-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--mist-soft);
+    gap: var(--space-3);
+  }
+  .session-item:last-child { border-bottom: none; }
+  .session-role { font-weight: 600; color: var(--ink); font-size: var(--text-sm); }
+  .session-date { font-size: var(--text-xs); margin-top: 2px; }
+  .view-all-link { font-size: var(--text-xs); }
+
+  .dash-roulette h2 { margin-bottom: var(--space-2); }
+  .dash-roulette p { font-size: var(--text-sm); margin-bottom: var(--space-4); }
+
+  @media (max-width: 720px) {
+    .dash-header-inner { flex-wrap: wrap; }
+    .dash-nav { order: 3; width: 100%; }
+    .dash-stats { grid-template-columns: 1fr; }
+    .dash-columns { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="dash-header">
+  <div class="dash-header-inner container">
+    <div class="dash-logo">MockBot</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="history.html">History</a>
+      <a href="mock-roulette.html">Mock Roulette</a>
+    </nav>
+    <div class="dash-user">
+      <span class="dash-greeting">Hi, Asha</span>
+      <a href="login.html" class="btn btn-quiet">Log out</a>
+    </div>
+  </div>
+</header>
+
+<main class="container dash-main">
+
+  <section class="dash-hero">
+    <div>
+      <h1>Ready when you are</h1>
+      <p class="text-mist">Pick up where you left off, or start something new — there's no clock running until you say go.</p>
+    </div>
+    <a href="resume-upload.html" class="btn btn-primary">Start a mock interview</a>
+  </section>
+
+  <section class="dash-stats">
+    <div class="card stat-card">
+      <div class="stat-value">7</div>
+      <div class="stat-label">sessions completed</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">23</div>
+      <div class="stat-label">concepts nailed</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value">5</div>
+      <div class="stat-label">worth revisiting</div>
+    </div>
+  </section>
+
+  <section class="dash-columns">
+    <div class="card dash-recent">
+      <div class="card-header">
+        <h2 style="margin:0;">Recent sessions</h2>
+        <a href="history.html" class="text-mono view-all-link">view all</a>
+      </div>
+      <ul class="session-list">
+        <li class="session-item">
+          <div>
+            <div class="session-role">Backend Engineer</div>
+            <div class="session-date text-mist">Jul 8, 2026 &middot; 8 questions</div>
+          </div>
+          <span class="badge badge-success">6 nailed</span>
+        </li>
+        <li class="session-item">
+          <div>
+            <div class="session-role">Frontend Engineer</div>
+            <div class="session-date text-mist">Jul 4, 2026 &middot; 6 questions</div>
+          </div>
+          <span class="badge badge-review">2 to revisit</span>
+        </li>
+        <li class="session-item">
+          <div>
+            <div class="session-role">Data Analyst</div>
+            <div class="session-date text-mist">Jun 29, 2026 &middot; 8 questions</div>
+          </div>
+          <span class="badge badge-success">7 nailed</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card dash-roulette">
+      <h2>Mock Roulette</h2>
+      <p class="text-mist">Get paired with a peer and take turns interviewing each other. Sometimes the best practice is a real conversation.</p>
+      <a href="mock-roulette.html" class="btn btn-secondary">Find a partner</a>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>
