@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockBot — Set up your session</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+  .dash-header { background: var(--paper-raised); border-bottom: 1px solid var(--mist-soft); }
+  .dash-header-inner { display:flex; align-items:center; justify-content:space-between; gap:var(--space-6); padding-top:var(--space-4); padding-bottom:var(--space-4); }
+  .dash-logo { font-family:var(--font-display); font-weight:700; font-size:var(--text-lg); color:var(--ink); flex-shrink:0; }
+  .dash-nav { display:flex; gap:var(--space-6); flex:1; }
+  .dash-nav a { font-size:var(--text-sm); font-weight:500; color:var(--mist); padding-bottom:4px; border-bottom:2px solid transparent; }
+  .dash-nav a:hover { color:var(--ink); }
+  .dash-user { display:flex; align-items:center; gap:var(--space-4); flex-shrink:0; }
+  .dash-greeting { font-size:var(--text-sm); color:var(--ink-soft); }
+
+  .upload-main {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-12);
+    max-width: 640px;
+    margin: 0 auto;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  /* Journey path bar — reuses .path-bar/.path-stone/.path-line from design-system.css,
+     but with its own 4-label row instead of the 2-label .path-label pattern */
+  .journey { margin-bottom: var(--space-8); }
+  .journey .path-label-row { display:flex; justify-content:space-between; margin-top: var(--space-2); }
+  .journey .path-label-row span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); }
+  .journey .path-label-row span.current { color: var(--sage); font-weight:600; }
+
+  .upload-intro { margin-bottom: var(--space-8); }
+  .upload-intro p { color: var(--mist); }
+
+  .dropzone {
+    display: block;
+    border: 2px dashed var(--mist-soft);
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .dropzone:hover, .dropzone.is-dragover {
+    border-color: var(--sage);
+    background: var(--sage-soft);
+  }
+  .dropzone-icon { color: var(--mist); margin-bottom: var(--space-2); display: flex; justify-content: center; transition: color 0.2s ease; }
+  .dropzone:hover .dropzone-icon, .dropzone.is-dragover .dropzone-icon { color: var(--sage); }
+  .dropzone-text { font-size: var(--text-sm); color: var(--ink-soft); margin-bottom: var(--space-1); }
+  .dropzone-hint { font-size: var(--text-xs); color: var(--mist); }
+  .dropzone input[type="file"] { display: none; }
+
+  .file-selected {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    background: var(--sage-soft);
+    border-radius: var(--radius-sm);
+    margin-top: var(--space-3);
+  }
+  .file-selected-name { font-size: var(--text-sm); color: var(--ink); font-weight: 500; }
+  .file-selected-size { font-size: var(--text-xs); color: var(--mist); margin-left: var(--space-2); }
+  .file-remove {
+    background: none; border: none; color: var(--clay); font-size: var(--text-xs);
+    cursor: pointer; font-family: var(--font-body); font-weight: 600;
+  }
+
+  textarea#job-description { min-height: 140px; resize: vertical; font-family: var(--font-body); }
+
+  .gentle-hint { display: none; font-size: var(--text-sm); color: var(--clay); margin-top: var(--space-3); margin-bottom: var(--space-3); }
+</style>
+</head>
+<body>
+
+<header class="dash-header">
+  <div class="dash-header-inner container">
+    <div class="dash-logo">MockBot</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="history.html">History</a>
+      <a href="mock-roulette.html">Mock Roulette</a>
+    </nav>
+    <div class="dash-user">
+      <span class="dash-greeting">Hi, Asha</span>
+      <a href="login.html" class="btn btn-quiet">Log out</a>
+    </div>
+  </div>
+</header>
+
+<main class="upload-main">
+
+  <div class="journey">
+    <div class="path-bar">
+      <div class="path-stone is-active"></div>
+      <div class="path-line"></div>
+      <div class="path-stone"></div>
+      <div class="path-line"></div>
+      <div class="path-stone"></div>
+      <div class="path-line"></div>
+      <div class="path-stone"></div>
+    </div>
+    <div class="path-label-row">
+      <span class="current">Set up</span>
+      <span>Questions</span>
+      <span>Interview</span>
+      <span>Feedback</span>
+    </div>
+  </div>
+
+  <div class="upload-intro">
+    <h1>Let's get your questions ready</h1>
+    <p>Add your resume and the job you're aiming for, and we'll tailor questions to both. Nothing here goes anywhere beyond building your session.</p>
+  </div>
+
+  <div class="card" style="margin-bottom: var(--space-6);">
+    <h3>Resume</h3>
+    <label class="dropzone" id="dropzone" for="resume-input">
+      <div id="dropzone-empty">
+        <div class="dropzone-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+          </svg>
+        </div>
+        <div class="dropzone-text">Drop your resume here, or click to browse</div>
+        <div class="dropzone-hint">PDF, DOC, or DOCX — up to 5MB</div>
+      </div>
+      <input type="file" id="resume-input" accept=".pdf,.doc,.docx">
+    </label>
+    <div class="file-selected" id="file-selected">
+      <div>
+        <span class="file-selected-name" id="file-name"></span>
+        <span class="file-selected-size" id="file-size"></span>
+      </div>
+      <button type="button" class="file-remove" id="file-remove">Remove</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: var(--space-6);">
+    <h3>Job description</h3>
+    <div class="field">
+      <label for="job-description">Paste the job posting</label>
+      <textarea id="job-description" placeholder="Paste the responsibilities and requirements from the listing you're targeting..."></textarea>
+      <div class="field-hint">The more detail, the more relevant your questions will be.</div>
+    </div>
+    <div class="field" style="margin-bottom: 0;">
+      <label for="target-role">Target role <span class="text-mist">(optional)</span></label>
+      <input type="text" id="target-role" placeholder="e.g. Backend Engineer">
+    </div>
+  </div>
+
+  <div class="gentle-hint" id="gentle-hint">Add your resume above so we can tailor the questions to you.</div>
+
+  <a href="interview-session.html" class="btn btn-primary" id="continue-btn" style="width:100%; justify-content:center;">Generate my questions</a>
+
+</main>
+
+<script>
+  const dropzone = document.getElementById('dropzone');
+  const resumeInput = document.getElementById('resume-input');
+  const dropzoneEmpty = document.getElementById('dropzone-empty');
+  const fileSelected = document.getElementById('file-selected');
+  const fileName = document.getElementById('file-name');
+  const fileSize = document.getElementById('file-size');
+  const fileRemove = document.getElementById('file-remove');
+  const continueBtn = document.getElementById('continue-btn');
+  const gentleHint = document.getElementById('gentle-hint');
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function showFile(file) {
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    dropzoneEmpty.style.display = 'none';
+    fileSelected.style.display = 'flex';
+    dropzone.style.display = 'none';
+    gentleHint.style.display = 'none';
+  }
+
+  function clearFile() {
+    resumeInput.value = '';
+    dropzone.style.display = 'block';
+    dropzoneEmpty.style.display = 'block';
+    fileSelected.style.display = 'none';
+  }
+
+  resumeInput.addEventListener('change', () => {
+    if (resumeInput.files.length) showFile(resumeInput.files[0]);
+  });
+
+  fileRemove.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearFile();
+  });
+
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('is-dragover');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('is-dragover');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('is-dragover');
+    if (e.dataTransfer.files.length) {
+      resumeInput.files = e.dataTransfer.files;
+      showFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  continueBtn.addEventListener('click', (e) => {
+    if (!resumeInput.files.length) {
+      e.preventDefault();
+      gentleHint.style.display = 'block';
+      return;
+    }
+    // --- Backend hookup goes here ---
+    // On real submit: POST the resume file + job description text + target
+    // role to the Resume/Job Description modules, then navigate to the
+    // generated interview session once questions come back.
+  });
+</script>
+
+</body>
+</html>
