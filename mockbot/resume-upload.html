@@ -15,17 +15,8 @@
   .dash-user { display:flex; align-items:center; gap:var(--space-4); flex-shrink:0; }
   .dash-greeting { font-size:var(--text-sm); color:var(--ink-soft); }
 
-  .upload-main {
-    padding-top: var(--space-8);
-    padding-bottom: var(--space-12);
-    max-width: 640px;
-    margin: 0 auto;
-    padding-left: var(--space-6);
-    padding-right: var(--space-6);
-  }
+  .upload-main { padding-top: var(--space-8); padding-bottom: var(--space-12); max-width: 640px; margin: 0 auto; padding-left: var(--space-6); padding-right: var(--space-6); }
 
-  /* Journey path bar — reuses .path-bar/.path-stone/.path-line from design-system.css,
-     but with its own 4-label row instead of the 2-label .path-label pattern */
   .journey { margin-bottom: var(--space-8); }
   .journey .path-label-row { display:flex; justify-content:space-between; margin-top: var(--space-2); }
   .journey .path-label-row span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); }
@@ -34,43 +25,20 @@
   .upload-intro { margin-bottom: var(--space-8); }
   .upload-intro p { color: var(--mist); }
 
-  .dropzone {
-    display: block;
-    border: 2px dashed var(--mist-soft);
-    border-radius: var(--radius-md);
-    padding: var(--space-8);
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-  .dropzone:hover, .dropzone.is-dragover {
-    border-color: var(--sage);
-    background: var(--sage-soft);
-  }
+  .dropzone { display: block; border: 2px dashed var(--mist-soft); border-radius: var(--radius-md); padding: var(--space-8); text-align: center; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
+  .dropzone:hover, .dropzone.is-dragover { border-color: var(--sage); background: var(--sage-soft); }
   .dropzone-icon { color: var(--mist); margin-bottom: var(--space-2); display: flex; justify-content: center; transition: color 0.2s ease; }
   .dropzone:hover .dropzone-icon, .dropzone.is-dragover .dropzone-icon { color: var(--sage); }
   .dropzone-text { font-size: var(--text-sm); color: var(--ink-soft); margin-bottom: var(--space-1); }
   .dropzone-hint { font-size: var(--text-xs); color: var(--mist); }
   .dropzone input[type="file"] { display: none; }
 
-  .file-selected {
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3) var(--space-4);
-    background: var(--sage-soft);
-    border-radius: var(--radius-sm);
-    margin-top: var(--space-3);
-  }
+  .file-selected { display: none; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--sage-soft); border-radius: var(--radius-sm); margin-top: var(--space-3); }
   .file-selected-name { font-size: var(--text-sm); color: var(--ink); font-weight: 500; }
   .file-selected-size { font-size: var(--text-xs); color: var(--mist); margin-left: var(--space-2); }
-  .file-remove {
-    background: none; border: none; color: var(--clay); font-size: var(--text-xs);
-    cursor: pointer; font-family: var(--font-body); font-weight: 600;
-  }
+  .file-remove { background: none; border: none; color: var(--clay); font-size: var(--text-xs); cursor: pointer; font-family: var(--font-body); font-weight: 600; }
 
   textarea#job-description { min-height: 140px; resize: vertical; font-family: var(--font-body); }
-
   .gentle-hint { display: none; font-size: var(--text-sm); color: var(--clay); margin-top: var(--space-3); margin-bottom: var(--space-3); }
 </style>
 </head>
@@ -81,12 +49,12 @@
     <div class="dash-logo">MockBot</div>
     <nav class="dash-nav">
       <a href="dashboard.html">Dashboard</a>
-      <a href="history.html">History</a>
       <a href="mock-roulette.html">Mock Roulette</a>
     </nav>
     <div class="dash-user">
       <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
-      <a href="index.html" class="btn btn-quiet" class="js-logout">Log out</a>
+      <!-- FIX: single class attribute -->
+      <a href="#" class="btn btn-quiet js-logout">Log out</a>
     </div>
   </div>
 </header>
@@ -126,9 +94,9 @@
           </svg>
         </div>
         <div class="dropzone-text">Drop your resume here, or click to browse</div>
-        <div class="dropzone-hint">PDF, DOC, or DOCX — up to 5MB</div>
+        <div class="dropzone-hint">PDF or DOCX — up to 5MB</div>
       </div>
-      <input type="file" id="resume-input" accept=".pdf,.doc,.docx">
+      <input type="file" id="resume-input" accept=".pdf,.docx">
     </label>
     <div class="file-selected" id="file-selected">
       <div>
@@ -154,12 +122,11 @@
 
   <div class="gentle-hint" id="gentle-hint">Add your resume above so we can tailor the questions to you.</div>
 
-  <button type="button" class="btn btn-primary" id="continue-btn" style="width:100%; justify-content:center;"> Generate my questions </button>
+  <button type="button" class="btn btn-primary" id="continue-btn" style="width:100%; justify-content:center;">Generate my questions</button>
 
 </main>
 
 <script src="api.js"></script>
 <script src="resume-upload-script.js"></script>
-
 </body>
 </html>

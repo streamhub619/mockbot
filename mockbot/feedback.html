@@ -24,7 +24,6 @@
     padding-right: var(--space-6);
   }
 
-  /* Journey bar — same pattern as resume-upload.html, now all stages done */
   .journey { margin-bottom: var(--space-8); }
   .journey .path-label-row { display:flex; justify-content:space-between; margin-top: var(--space-2); }
   .journey .path-label-row span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); }
@@ -32,44 +31,18 @@
 
   .feedback-summary { margin-bottom: var(--space-6); }
   .feedback-summary h1 { margin-bottom: var(--space-1); }
-  .feedback-summary-stats {
-    display: flex;
-    gap: var(--space-6);
-    margin-top: var(--space-4);
-    font-size: var(--text-sm);
-    color: var(--ink-soft);
-  }
-  .stat-inline-value {
-    font-family: var(--font-display);
-    font-weight: 700;
-    color: var(--sage);
-    margin-right: var(--space-1);
-  }
+  .feedback-summary-stats { display: flex; gap: var(--space-6); margin-top: var(--space-4); font-size: var(--text-sm); color: var(--ink-soft); }
+  .stat-inline-value { font-family: var(--font-display); font-weight: 700; color: var(--sage); margin-right: var(--space-1); }
   .question-path { margin: var(--space-4) 0; }
 
   .feedback-list { list-style: none; margin: 0 0 var(--space-8); padding: 0; }
-  .feedback-item {
-    background: var(--paper-raised);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card);
-    padding: var(--space-4) var(--space-5);
-    margin-bottom: var(--space-3);
-  }
+  .feedback-item { background: var(--paper-raised); border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: var(--space-4) var(--space-5); margin-bottom: var(--space-3); }
   .feedback-item-header { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
   .feedback-item-num { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); flex-shrink: 0; }
   .feedback-item-question { flex: 1; font-size: var(--text-sm); color: var(--ink); min-width: 200px; }
-  .feedback-item-note {
-    margin-top: var(--space-3);
-    padding: var(--space-3);
-    background: var(--clay-soft);
-    border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
-    color: var(--ink-soft);
-    line-height: 1.5;
-  }
+  .feedback-item-note { margin-top: var(--space-3); padding: var(--space-3); background: var(--clay-soft); border-radius: var(--radius-sm); font-size: var(--text-sm); color: var(--ink-soft); line-height: 1.5; }
 
   .feedback-closing { text-align: center; color: var(--mist); font-size: var(--text-sm); margin-bottom: var(--space-6); }
-
   .feedback-actions { display: flex; gap: var(--space-3); }
   .feedback-actions .btn { flex: 1; justify-content: center; }
 </style>
@@ -81,12 +54,12 @@
     <div class="dash-logo">MockBot</div>
     <nav class="dash-nav">
       <a href="dashboard.html">Dashboard</a>
-      <a href="history.html">History</a>
       <a href="mock-roulette.html">Mock Roulette</a>
     </nav>
     <div class="dash-user">
       <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
-      <a href="index.html" class="btn btn-quiet" class="js-logout">Log out</a>
+      <!-- FIX: single class attribute with both classes -->
+      <a href="#" class="btn btn-quiet js-logout">Log out</a>
     </div>
   </div>
 </header>
@@ -113,18 +86,9 @@
 
   <div class="card feedback-summary">
     <h1 id="feedback-heading">Nice work</h1>
-    <p class="text-mist" id="feedback-meta" style="margin:0;"></p>
+    <p class="text-mist" id="feedback-meta" style="margin:0;">Loading your results…</p>
 
-    <div class="path-bar question-path" id="feedback-question-path">
-      <div class="path-stone is-correct"></div><div class="path-line"></div>
-      <div class="path-stone is-correct"></div><div class="path-line"></div>
-      <div class="path-stone is-review"></div><div class="path-line"></div>
-      <div class="path-stone is-correct"></div><div class="path-line"></div>
-      <div class="path-stone is-correct"></div><div class="path-line"></div>
-      <div class="path-stone is-review"></div><div class="path-line"></div>
-      <div class="path-stone is-correct"></div><div class="path-line"></div>
-      <div class="path-stone is-correct"></div>
-    </div>
+    <div class="path-bar question-path" id="feedback-question-path"></div>
 
     <div class="feedback-summary-stats">
       <div><span class="stat-inline-value" id="feedback-stat-nailed">—</span>nailed</div>
@@ -132,63 +96,10 @@
     </div>
   </div>
 
-  <ul class="feedback-list"  id="feedback-list">
+  <ul class="feedback-list" id="feedback-list">
     <li class="feedback-item">
       <div class="feedback-item-header">
-        <span class="feedback-item-num">Q1</span>
-        <span class="feedback-item-question">Explain the difference between SQL and NoSQL databases, and when you'd choose one over the other.</span>
-        <span class="badge badge-success">nailed it</span>
-      </div>
-    </li>
-    <li class="feedback-item">
-      <div class="feedback-item-header">
-        <span class="feedback-item-num">Q2</span>
-        <span class="feedback-item-question">What is the difference between a process and a thread?</span>
-        <span class="badge badge-success">nailed it</span>
-      </div>
-    </li>
-    <li class="feedback-item">
-      <div class="feedback-item-header">
-        <span class="feedback-item-num">Q3</span>
-        <span class="feedback-item-question">How would you design a rate limiter for an API?</span>
-        <span class="badge badge-review">worth revisiting</span>
-      </div>
-      <div class="feedback-item-note">Your answer covered the token bucket approach well — the piece to add next time is how you'd coordinate rate limits across multiple servers (e.g. a shared store like Redis).</div>
-    </li>
-    <li class="feedback-item">
-      <div class="feedback-item-header">
-        <span class="feedback-item-num">Q4</span>
-        <span class="feedback-item-question">Explain RESTful API design principles.</span>
-        <span class="badge badge-success">nailed it</span>
-      </div>
-    </li>
-    <li class="feedback-item">
-      <div class="feedback-item-header">
-        <span class="feedback-item-num">Q5</span>
-        <span class="feedback-item-question">What is database indexing and how does it improve performance?</span>
-        <span class="badge badge-success">nailed it</span>
-      </div>
-    </li>
-    <li class="feedback-item">
-      <div class="feedback-item-header">
-        <span class="feedback-item-num">Q6</span>
-        <span class="feedback-item-question">Walk me through what happens when you type a URL into a browser and hit enter.</span>
-        <span class="badge badge-review">worth revisiting</span>
-      </div>
-      <div class="feedback-item-note">Good coverage of DNS resolution and the TCP handshake — the answer skipped HTTPS/TLS negotiation and the browser rendering steps after the response arrives.</div>
-    </li>
-    <li class="feedback-item">
-      <div class="feedback-item-header">
-        <span class="feedback-item-num">Q7</span>
-        <span class="feedback-item-question">What is the CAP theorem?</span>
-        <span class="badge badge-success">nailed it</span>
-      </div>
-    </li>
-    <li class="feedback-item">
-      <div class="feedback-item-header">
-        <span class="feedback-item-num">Q8</span>
-        <span class="feedback-item-question">How do you handle authentication vs authorization in a backend system?</span>
-        <span class="badge badge-success">nailed it</span>
+        <span class="feedback-item-question text-mist">Loading feedback…</span>
       </div>
     </li>
   </ul>
@@ -203,6 +114,7 @@
 </main>
 
 <script src="api.js"></script>
-<script src="feedback-scripts.js"></script>
+<!-- FIX: was "feedback-scripts.js" (with an 's') — file is actually "feedback-script.js" -->
+<script src="feedback-script.js"></script>
 </body>
 </html>
