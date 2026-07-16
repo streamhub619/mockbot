@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockBot — Feedback</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+  .dash-header { background: var(--paper-raised); border-bottom: 1px solid var(--mist-soft); }
+  .dash-header-inner { display:flex; align-items:center; justify-content:space-between; gap:var(--space-6); padding-top:var(--space-4); padding-bottom:var(--space-4); }
+  .dash-logo { font-family:var(--font-display); font-weight:700; font-size:var(--text-lg); color:var(--ink); flex-shrink:0; }
+  .dash-nav { display:flex; gap:var(--space-6); flex:1; }
+  .dash-nav a { font-size:var(--text-sm); font-weight:500; color:var(--mist); padding-bottom:4px; border-bottom:2px solid transparent; }
+  .dash-nav a:hover { color:var(--ink); }
+  .dash-user { display:flex; align-items:center; gap:var(--space-4); flex-shrink:0; }
+  .dash-greeting { font-size:var(--text-sm); color:var(--ink-soft); }
+
+  .feedback-main {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-12);
+    max-width: 640px;
+    margin: 0 auto;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  .journey { margin-bottom: var(--space-8); }
+  .journey .path-label-row { display:flex; justify-content:space-between; margin-top: var(--space-2); }
+  .journey .path-label-row span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); }
+  .journey .path-label-row span.current { color: var(--sage); font-weight:600; }
+
+  .feedback-summary { margin-bottom: var(--space-6); }
+  .feedback-summary h1 { margin-bottom: var(--space-1); }
+  .feedback-summary-stats { display: flex; gap: var(--space-6); margin-top: var(--space-4); font-size: var(--text-sm); color: var(--ink-soft); }
+  .stat-inline-value { font-family: var(--font-display); font-weight: 700; color: var(--sage); margin-right: var(--space-1); }
+  .question-path { margin: var(--space-4) 0; }
+
+  .feedback-list { list-style: none; margin: 0 0 var(--space-8); padding: 0; }
+  .feedback-item { background: var(--paper-raised); border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: var(--space-4) var(--space-5); margin-bottom: var(--space-3); }
+  .feedback-item-header { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+  .feedback-item-num { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); flex-shrink: 0; }
+  .feedback-item-question { flex: 1; font-size: var(--text-sm); color: var(--ink); min-width: 200px; }
+  .feedback-item-note { margin-top: var(--space-3); padding: var(--space-3); background: var(--clay-soft); border-radius: var(--radius-sm); font-size: var(--text-sm); color: var(--ink-soft); line-height: 1.5; }
+
+  .feedback-closing { text-align: center; color: var(--mist); font-size: var(--text-sm); margin-bottom: var(--space-6); }
+  .feedback-actions { display: flex; gap: var(--space-3); }
+  .feedback-actions .btn { flex: 1; justify-content: center; }
+</style>
+</head>
+<body>
+
+<header class="dash-header">
+  <div class="dash-header-inner container">
+    <div class="dash-logo">MockBot</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="mock-roulette.html">Mock Roulette</a>
+    </nav>
+    <div class="dash-user">
+      <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
+      <!-- FIX: single class attribute with both classes -->
+      <a href="#" class="btn btn-quiet js-logout">Log out</a>
+    </div>
+  </div>
+</header>
+
+<main class="feedback-main">
+
+  <div class="journey">
+    <div class="path-bar">
+      <div class="path-stone is-done"></div>
+      <div class="path-line"></div>
+      <div class="path-stone is-done"></div>
+      <div class="path-line"></div>
+      <div class="path-stone is-done"></div>
+      <div class="path-line"></div>
+      <div class="path-stone is-done"></div>
+    </div>
+    <div class="path-label-row">
+      <span>Set up</span>
+      <span>Questions</span>
+      <span>Interview</span>
+      <span class="current">Feedback</span>
+    </div>
+  </div>
+
+  <div class="card feedback-summary">
+    <h1 id="feedback-heading">Nice work</h1>
+    <p class="text-mist" id="feedback-meta" style="margin:0;">Loading your results…</p>
+
+    <div class="path-bar question-path" id="feedback-question-path"></div>
+
+    <div class="feedback-summary-stats">
+      <div><span class="stat-inline-value" id="feedback-stat-nailed">—</span>nailed</div>
+      <div><span class="stat-inline-value" id="feedback-stat-revisit">—</span>worth revisiting</div>
+    </div>
+  </div>
+
+  <ul class="feedback-list" id="feedback-list">
+    <li class="feedback-item">
+      <div class="feedback-item-header">
+        <span class="feedback-item-question text-mist">Loading feedback…</span>
+      </div>
+    </li>
+  </ul>
+
+  <div class="feedback-closing">Every session sharpens the next one.</div>
+
+  <div class="feedback-actions">
+    <a href="dashboard.html" class="btn btn-secondary">Back to dashboard</a>
+    <a href="resume-upload.html" class="btn btn-primary">Practice again</a>
+  </div>
+
+</main>
+
+<script src="api.js"></script>
+<!-- FIX: was "feedback-scripts.js" (with an 's') — file is actually "feedback-script.js" -->
+<script src="feedback-script.js"></script>
+</body>
+</html>
