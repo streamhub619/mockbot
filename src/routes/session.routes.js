@@ -1,27 +1,25 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 
-const { authenticate }      = require('../middleware/auth');
-const SessionModel          = require('../models/session.model');
-const ResumeModel           = require('../models/resume.model');
-const JobDescriptionModel   = require('../models/jobdescription.model');
-const AnswerModel           = require('../models/answer.model');
-const { matchSkills }       = require('../utils/skillextractor');
-const { query }             = require('../config/db');
+const { authenticate }          = require('../middleware/auth');
+const SessionModel              = require('../models/session.model');
+const ResumeModel               = require('../models/resume.model');
+const JobDescriptionModel       = require('../models/jobdescription.model');
+const AnswerModel               = require('../models/answer.model');
+const { matchSkills }           = require('../utils/skillextractor');
+const { generateQuestions }     = require('../utils/questiongenerator');
+const { query }                 = require('../config/db');
 
 const router = express.Router();
 router.use(authenticate);
 
 // POST /api/sessions
-// Creates a new interview session.
-// For 'resume_tailored': matches resume skills vs JD skills to pick relevant questions.
-// For 'quick': picks random generic questions.
 router.post(
   '/',
   [
     body('sessionType')
-      .isIn(['resume_tailored', 'quick'])
-      .withMessage("sessionType must be 'resume_tailored' or 'quick'."),
+      .isIn(['resume_tailored', 'ai_tailored', 'quick'])
+      .withMessage("sessionType must be 'resume_tailored', 'ai_tailored', or 'quick'."),
     body('resumeId').optional().isInt(),
     body('jobDescriptionId').optional().isInt(),
   ],
@@ -34,14 +32,19 @@ router.post(
     try {
       let questionIds = [];
 
-      if (sessionType === 'resume_tailored') {
+      if (sessionType === 'ai_tailored') {
+        // ── AI MODE ──────────────────────────────────────────
+        if (!process.env.GEMINI_API_KEY) {
+          return res.status(503).json({
+            error: 'AI mode is not available — GEMINI_API_KEY is not configured.',
+          });
+        }
         if (!resumeId || !jobDescriptionId) {
           return res.status(400).json({
-            error: 'resumeId and jobDescriptionId are required for resume_tailored sessions.',
+            error: 'resumeId and jobDescriptionId are required for AI sessions.',
           });
         }
 
-        // Verify ownership
         const [resume, jd] = await Promise.all([
           ResumeModel.findById(resumeId, req.userId),
           JobDescriptionModel.findById(jobDescriptionId, req.userId),
@@ -50,14 +53,37 @@ router.post(
         if (!resume) return res.status(404).json({ error: 'Resume not found.' });
         if (!jd)     return res.status(404).json({ error: 'Job description not found.' });
 
-        // Skill-matched question selection
+        // Gemini generates and persists questions, returns their IDs
+        questionIds = await generateQuestions(
+          resume.raw_text || '',
+          jd.description_text || '',
+          5, 2
+        );
+
+      } else if (sessionType === 'resume_tailored') {
+        // ── RULES MODE ────────────────────────────────────────
+        if (!resumeId || !jobDescriptionId) {
+          return res.status(400).json({
+            error: 'resumeId and jobDescriptionId are required for resume_tailored sessions.',
+          });
+        }
+
+        const [resume, jd] = await Promise.all([
+          ResumeModel.findById(resumeId, req.userId),
+          JobDescriptionModel.findById(jobDescriptionId, req.userId),
+        ]);
+
+        if (!resume) return res.status(404).json({ error: 'Resume not found.' });
+        if (!jd)     return res.status(404).json({ error: 'Job description not found.' });
+
         const resumeSkillNames = (resume.parsed_skills || []).map((s) => s.name);
         const jdSkillNames     = (jd.required_skills   || []).map((s) => s.name);
         const matched          = matchSkills(resumeSkillNames, jdSkillNames);
 
         questionIds = await selectTailoredQuestions(matched, 5, 2);
+
       } else {
-        // Quick mode — random generic questions
+        // ── QUICK MODE ────────────────────────────────────────
         const qs = await SessionModel.getGenericQuestions(7);
         questionIds = qs.map((q) => q.id);
       }
@@ -70,7 +96,7 @@ router.post(
 
       const session = await SessionModel.create({
         userId:           req.userId,
-        resumeId:         resumeId   || null,
+        resumeId:         resumeId         || null,
         jobDescriptionId: jobDescriptionId || null,
         sessionType,
         questionIds,
@@ -83,7 +109,7 @@ router.post(
   }
 );
 
-// GET /api/sessions  — all sessions for the current user
+// GET /api/sessions
 router.get('/', async (req, res, next) => {
   try {
     const sessions = await SessionModel.findAllByUser(req.userId);
@@ -93,7 +119,18 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// GET /api/sessions/:id  — full session with questions and answers
+// GET /api/sessions/history/stats — MUST be before /:id
+router.get('/history/stats', async (req, res, next) => {
+  try {
+    const stats   = await AnswerModel.getStats(req.userId);
+    const history = await AnswerModel.getHistory(req.userId, 10);
+    return res.json({ stats, recentAnswers: history });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/sessions/:id
 router.get('/:id', async (req, res, next) => {
   try {
     const session = await SessionModel.findById(req.params.id, req.userId);
@@ -104,7 +141,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// PATCH /api/sessions/:id/complete  — mark a session as completed
+// PATCH /api/sessions/:id/complete
 router.patch('/:id/complete', async (req, res, next) => {
   try {
     const session = await SessionModel.complete(req.params.id, req.userId);
@@ -126,31 +163,16 @@ router.patch('/:id/abandon', async (req, res, next) => {
   }
 });
 
-// GET /api/sessions/history/stats  — performance stats for dashboard
-router.get('/history/stats', async (req, res, next) => {
-  try {
-    const stats   = await AnswerModel.getStats(req.userId);
-    const history = await AnswerModel.getHistory(req.userId, 10);
-    return res.json({ stats, recentAnswers: history });
-  } catch (err) {
-    next(err);
-  }
-});
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-// Pick 5 technical + 2 behavioral questions.
-// Prioritises questions whose category matches the candidate's matched skills.
 async function selectTailoredQuestions(matchedSkills, techCount, behavCount) {
   const lowerMatched = matchedSkills.map((s) => s.toLowerCase());
 
-  // Fetch all generic technical questions
   const { rows: techQuestions } = await query(
     `SELECT id, category FROM questions
      WHERE is_generic = TRUE AND type = 'technical'
      ORDER BY RANDOM()`
   );
 
-  // Score each question by how many matched skills relate to its category
   const scored = techQuestions.map((q) => {
     const catLower = (q.category || '').toLowerCase();
     const score    = lowerMatched.filter((s) => catLower.includes(s) || s.includes(catLower)).length;
@@ -160,7 +182,6 @@ async function selectTailoredQuestions(matchedSkills, techCount, behavCount) {
   scored.sort((a, b) => b.score - a.score);
   const techIds = scored.slice(0, techCount).map((q) => q.id);
 
-  // Behavioral questions are always random
   const { rows: behavQuestions } = await query(
     `SELECT id FROM questions
      WHERE is_generic = TRUE AND type = 'behavioral'

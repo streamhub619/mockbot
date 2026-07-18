@@ -1,33 +1,30 @@
 // =============================================================================
 //  MockBot — API Layer  (api.js)
-//  Drop this file alongside your HTML files and include it before any
-//  page-specific <script> tags:  <script src="api.js"></script>
 // =============================================================================
 
 const API_BASE = 'http://localhost:5000/api';
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 const Auth = {
-  getToken()          { return localStorage.getItem('mb_token'); },
-  setToken(token)     { localStorage.setItem('mb_token', token); },
-  removeToken()       { localStorage.removeItem('mb_token'); },
-  getUser()           { return JSON.parse(localStorage.getItem('mb_user') || 'null'); },
-  setUser(user)       { localStorage.setItem('mb_user', JSON.stringify(user)); },
-  removeUser()        { localStorage.removeItem('mb_user'); },
-  isLoggedIn()        { return !!Auth.getToken(); },
+  getToken()      { return localStorage.getItem('mb_token'); },
+  setToken(t)     { localStorage.setItem('mb_token', t); },
+  removeToken()   { localStorage.removeItem('mb_token'); },
+  getUser()       { return JSON.parse(localStorage.getItem('mb_user') || 'null'); },
+  setUser(u)      { localStorage.setItem('mb_user', JSON.stringify(u)); },
+  removeUser()    { localStorage.removeItem('mb_user'); },
+  isLoggedIn()    { return !!Auth.getToken(); },
   logout() {
     Auth.removeToken();
     Auth.removeUser();
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
   },
 };
 
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
-  const token = Auth.getToken();
+  const token   = Auth.getToken();
   const headers = { ...(options.headers || {}) };
 
-  // Only set Content-Type for JSON bodies (not FormData)
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
@@ -35,9 +32,8 @@ async function apiFetch(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res  = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
-  // Token expired / invalid — kick to login
   if (res.status === 401) {
     Auth.logout();
     return;
@@ -56,7 +52,7 @@ const AuthAPI = {
   async login(email, password) {
     const data = await apiFetch('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body:   JSON.stringify({ email, password }),
     });
     Auth.setToken(data.token);
     Auth.setUser(data.user);
@@ -66,7 +62,7 @@ const AuthAPI = {
   async register(fullName, email, password) {
     const data = await apiFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ fullName, email, password }),
+      body:   JSON.stringify({ fullName, email, password }),
     });
     Auth.setToken(data.token);
     Auth.setUser(data.user);
@@ -85,10 +81,7 @@ const ResumeAPI = {
     form.append('resume', file);
     return apiFetch('/resumes', { method: 'POST', body: form });
   },
-
-  async list() {
-    return apiFetch('/resumes');
-  },
+  async list() { return apiFetch('/resumes'); },
 };
 
 // ─── Job Description API ──────────────────────────────────────────────────────
@@ -96,39 +89,32 @@ const JobDescriptionAPI = {
   async create(descriptionText, title = '', company = '') {
     return apiFetch('/job-descriptions', {
       method: 'POST',
-      body: JSON.stringify({ descriptionText, title, company }),
+      body:   JSON.stringify({ descriptionText, title, company }),
     });
   },
 };
 
 // ─── Session API ──────────────────────────────────────────────────────────────
 const SessionAPI = {
-  async create(resumeId, jobDescriptionId) {
+  /**
+   * Create a new interview session.
+   * @param {number} resumeId
+   * @param {number} jobDescriptionId
+   * @param {'ai_tailored'|'resume_tailored'} sessionType
+   *   'ai_tailored'    — Gemini generates questions + evaluates answers
+   *   'resume_tailored'— DB questions matched by skill, rubric evaluator
+   */
+  async create(resumeId, jobDescriptionId, sessionType = 'resume_tailored') {
     return apiFetch('/sessions', {
       method: 'POST',
-      body: JSON.stringify({
-        sessionType: 'resume_tailored',
-        resumeId,
-        jobDescriptionId,
-      }),
+      body:   JSON.stringify({ resumeId, jobDescriptionId, sessionType }),
     });
   },
 
-  async get(sessionId) {
-    return apiFetch(`/sessions/${sessionId}`);
-  },
-
-  async list() {
-    return apiFetch('/sessions');
-  },
-
-  async complete(sessionId) {
-    return apiFetch(`/sessions/${sessionId}/complete`, { method: 'PATCH' });
-  },
-
-  async stats() {
-    return apiFetch('/sessions/history/stats');
-  },
+  async get(sessionId)  { return apiFetch(`/sessions/${sessionId}`); },
+  async list()          { return apiFetch('/sessions'); },
+  async complete(id)    { return apiFetch(`/sessions/${id}/complete`, { method: 'PATCH' }); },
+  async stats()         { return apiFetch('/sessions/history/stats'); },
 };
 
 // ─── Answer API ───────────────────────────────────────────────────────────────
@@ -136,46 +122,30 @@ const AnswerAPI = {
   async submit(sessionId, questionId, answerText) {
     return apiFetch('/answers', {
       method: 'POST',
-      body: JSON.stringify({ sessionId, questionId, answerText }),
+      body:   JSON.stringify({ sessionId, questionId, answerText }),
     });
   },
 };
 
 // ─── Roulette API ─────────────────────────────────────────────────────────────
 const RouletteAPI = {
-  async join() {
-    return apiFetch('/roulette/join', { method: 'POST' });
-  },
-
-  async leave() {
-    return apiFetch('/roulette/leave', { method: 'DELETE' });
-  },
-
-  async pollMatch() {
-    return apiFetch('/roulette/match');
-  },
-
-  async getMatch(matchId) {
-    return apiFetch(`/roulette/matches/${matchId}`);
-  },
-
+  async join()               { return apiFetch('/roulette/join', { method: 'POST' }); },
+  async leave()              { return apiFetch('/roulette/leave', { method: 'DELETE' }); },
+  async pollMatch()          { return apiFetch('/roulette/match'); },
+  async getMatch(matchId)    { return apiFetch(`/roulette/matches/${matchId}`); },
   async submitAnswer(matchId, answerText) {
     return apiFetch(`/roulette/matches/${matchId}/submit`, {
       method: 'POST',
-      body: JSON.stringify({ answerText }),
+      body:   JSON.stringify({ answerText }),
     });
   },
 };
 
-// ─── Page guard — call at top of every protected page ────────────────────────
-// Redirects to login.html if the user is not authenticated.
+// ─── Guards & helpers ─────────────────────────────────────────────────────────
 function requireAuth() {
-  if (!Auth.isLoggedIn()) {
-    window.location.href = 'login.html';
-  }
+  if (!Auth.isLoggedIn()) window.location.href = 'index.html';
 }
 
-// ─── Fill in the logged-in user's name wherever .js-user-name appears ────────
 function renderUserName() {
   const user = Auth.getUser();
   if (!user) return;
@@ -184,12 +154,11 @@ function renderUserName() {
   });
 }
 
-// ─── Session storage helpers (pass data between pages) ────────────────────────
 const Store = {
   set(key, value) { sessionStorage.setItem(`mb_${key}`, JSON.stringify(value)); },
-  get(key)        {
+  get(key) {
     try { return JSON.parse(sessionStorage.getItem(`mb_${key}`)); }
     catch { return null; }
   },
-  remove(key)     { sessionStorage.removeItem(`mb_${key}`); },
+  remove(key) { sessionStorage.removeItem(`mb_${key}`); },
 };

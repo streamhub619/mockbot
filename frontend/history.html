@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockBot — History</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+  .dash-header { background: var(--paper-raised); border-bottom: 1px solid var(--mist-soft); }
+  .dash-header-inner { display:flex; align-items:center; justify-content:space-between; gap:var(--space-6); padding-top:var(--space-4); padding-bottom:var(--space-4); }
+  .dash-logo { font-family:var(--font-display); font-weight:700; font-size:var(--text-lg); color:var(--ink); flex-shrink:0; }
+  .dash-nav { display:flex; gap:var(--space-6); flex:1; }
+  .dash-nav a { font-size:var(--text-sm); font-weight:500; color:var(--mist); padding-bottom:4px; border-bottom:2px solid transparent; }
+  .dash-nav a:hover { color:var(--ink); text-decoration:none; }
+  .dash-nav a.active { color:var(--ink); border-bottom-color:var(--sage); }
+  .dash-user { display:flex; align-items:center; gap:var(--space-4); flex-shrink:0; }
+  .dash-greeting { font-size:var(--text-sm); color:var(--ink-soft); }
+
+  .history-main {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-12);
+  }
+
+  .history-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+  }
+  .history-hero p { margin: 0; color: var(--mist); }
+
+  /* ── Session cards ── */
+  .session-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .session-card {
+    background: var(--paper-raised);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-4) var(--space-6);
+    cursor: pointer;
+    transition: box-shadow 0.18s ease;
+  }
+  .session-card:hover { box-shadow: 0 4px 18px rgba(43,41,38,0.1); }
+
+  .session-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .session-score {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-lg);
+    flex-shrink: 0;
+  }
+  .score-strong   { background: var(--gold-soft);  color: #8A5E13; }
+  .score-adequate { background: var(--sage-soft);   color: var(--sage); }
+  .score-weak     { background: var(--clay-soft);   color: var(--clay); }
+  .score-none     { background: var(--mist-soft);   color: var(--mist); }
+
+  .session-info { flex: 1; min-width: 0; }
+  .session-title { font-weight: 600; color: var(--ink); font-size: var(--text-base); margin-bottom: 2px; }
+  .session-meta  { font-size: var(--text-xs); color: var(--mist); }
+
+  .session-path { margin-top: var(--space-3); }
+
+  /* ── Expanded detail panel ── */
+  .session-detail {
+    display: none;
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--mist-soft);
+  }
+  .session-detail.is-open { display: block; }
+
+  .detail-q-list { list-style: none; margin: 0; padding: 0; }
+  .detail-q-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--mist-soft);
+    font-size: var(--text-sm);
+  }
+  .detail-q-item:last-child { border-bottom: none; }
+  .detail-q-num  { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); flex-shrink: 0; padding-top: 2px; }
+  .detail-q-text { flex: 1; color: var(--ink); line-height: 1.5; }
+  .detail-q-note {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--clay-soft);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .detail-q-note strong { color: var(--clay); }
+
+  .chevron {
+    color: var(--mist);
+    font-size: 18px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .session-card.is-open .chevron { transform: rotate(90deg); }
+
+  /* ── Empty / loading states ── */
+  .history-empty {
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--mist);
+  }
+  .history-empty h2 { color: var(--ink-soft); margin-bottom: var(--space-2); }
+  .history-loading {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--mist);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 600px) {
+    .history-hero { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header class="dash-header">
+  <div class="dash-header-inner container">
+    <div class="dash-logo">MockBot</div>
+    <nav class="dash-nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="history.html" class="active">History</a>
+      <a href="mock-roulette.html">Mock Roulette</a>
+    </nav>
+    <div class="dash-user">
+      <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
+      <a href="#" class="btn btn-quiet js-logout">Log out</a>
+    </div>
+  </div>
+</header>
+
+<main class="container history-main">
+
+  <div class="history-hero">
+    <div>
+      <h1>Interview history</h1>
+      <p>Every session you've completed, with full question-by-question feedback.</p>
+    </div>
+    <a href="resume-upload.html" class="btn btn-primary">New session</a>
+  </div>
+
+  <div id="history-container">
+    <div class="history-loading">Loading your sessions…</div>
+  </div>
+
+</main>
+
+<script src="api.js"></script>
+<script src="history-script.js"></script>
+</body>
+</html>

@@ -1,16 +1,15 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 
-const { authenticate }    = require('../middleware/auth');
-const AnswerModel         = require('../models/answer.model');
-const { evaluateAnswer }  = require('../utils/evaluator');
-const { query }           = require('../config/db');
+const { authenticate }   = require('../middleware/auth');
+const AnswerModel        = require('../models/answer.model');
+const { evaluateAnswer } = require('../utils/evaluator');
+const { query }          = require('../config/db');
 
 const router = express.Router();
 router.use(authenticate);
 
 // POST /api/answers
-// Submits an answer, runs evaluation (rule-based, or AI if key is set), and stores results.
 router.post(
   '/',
   [
@@ -26,9 +25,11 @@ router.post(
     const { sessionId, questionId, answerText } = req.body;
 
     try {
-      // Verify the session belongs to this user and is still active
+      // Fetch session — include session_type to decide which evaluator to use
       const { rows: [session] } = await query(
-        `SELECT id, status FROM interview_sessions WHERE id = $1 AND user_id = $2`,
+        `SELECT id, status, session_type
+         FROM interview_sessions
+         WHERE id = $1 AND user_id = $2`,
         [sessionId, req.userId]
       );
 
@@ -39,9 +40,9 @@ router.post(
         return res.status(409).json({ error: 'This session is no longer active.' });
       }
 
-      // Verify the question belongs to this session
       const { rows: [sq] } = await query(
-        `SELECT id FROM session_questions WHERE session_id = $1 AND question_id = $2`,
+        `SELECT id FROM session_questions
+         WHERE session_id = $1 AND question_id = $2`,
         [sessionId, questionId]
       );
 
@@ -49,22 +50,20 @@ router.post(
         return res.status(400).json({ error: 'This question is not part of the session.' });
       }
 
-      // Evaluate
+      // ── Route to the right evaluator based on session type ──
+      // ai_tailored  → Gemini evaluation
+      // everything else → rule-based rubric evaluator
       let evaluation;
-
-      if (process.env.ANTHROPIC_API_KEY) {
-        // Optional AI path (Sprint 4+)
-        evaluation = await evaluateWithAI(questionId, answerText);
+      if (session.session_type === 'ai_tailored' && process.env.GEMINI_API_KEY) {
+        evaluation = await evaluateWithGemini(questionId, answerText);
       } else {
-        // Default: rule-based offline evaluation
         evaluation = await evaluateAnswer(questionId, answerText);
       }
 
-      // Persist
       const answer = await AnswerModel.upsert({
         sessionId,
         questionId,
-        userId:   req.userId,
+        userId: req.userId,
         answerText,
         ...evaluation,
       });
@@ -72,15 +71,15 @@ router.post(
       return res.status(201).json({
         message: 'Answer submitted and evaluated.',
         answer: {
-          id:              answer.id,
-          score:           answer.score,
-          verdict:         answer.verdict,
-          strengths:       answer.strengths,
-          missed:          answer.missed,
-          improvements:    answer.improvements,
-          logic_check:     answer.logic_check,
+          id:               answer.id,
+          score:            answer.score,
+          verdict:          answer.verdict,
+          strengths:        answer.strengths,
+          missed:           answer.missed,
+          improvements:     answer.improvements,
+          logic_check:      answer.logic_check,
           overall_feedback: answer.overall_feedback,
-          submittedAt:     answer.submitted_at,
+          submittedAt:      answer.submitted_at,
         },
       });
     } catch (err) {
@@ -89,7 +88,7 @@ router.post(
   }
 );
 
-// GET /api/answers/session/:sessionId  — all answers for a session
+// GET /api/answers/session/:sessionId
 router.get('/session/:sessionId', async (req, res, next) => {
   try {
     const answers = await AnswerModel.findBySession(req.params.sessionId, req.userId);
@@ -99,7 +98,7 @@ router.get('/session/:sessionId', async (req, res, next) => {
   }
 });
 
-// GET /api/answers/history  — recent answer history
+// GET /api/answers/history
 router.get('/history', async (req, res, next) => {
   try {
     const limit   = Math.min(Number(req.query.limit) || 20, 100);
@@ -110,48 +109,50 @@ router.get('/history', async (req, res, next) => {
   }
 });
 
-// Optional AI Evaluator (Sprint 4)
-async function evaluateWithAI(questionId, answerText) {
+// ─── Gemini Evaluator ─────────────────────────────────────────────────────────
+async function evaluateWithGemini(questionId, answerText) {
   const { rows: [question] } = await query(
     `SELECT text, type, category, hint FROM questions WHERE id = $1`,
     [questionId]
   );
-  const { rows: rubric } = await query(
-    `SELECT criterion, keywords FROM rubrics WHERE question_id = $1 ORDER BY order_index`,
-    [questionId]
-  );
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key':    process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model:      'claude-sonnet-4-20250514',
-      max_tokens: 1200,
-      system: `You are MockBot, a rigorous technical interview evaluator.
-Evaluate the candidate's answer and respond ONLY with valid JSON (no markdown):
+  const prompt = `You are MockBot, a rigorous technical interview evaluator.
+Evaluate the candidate's answer and respond ONLY with valid JSON (no markdown, no code fences):
 {"score":7,"verdict":"Adequate","strengths":["..."],"missed":["..."],"improvements":["..."],"logic_check":{"passed":["..."],"failed":["..."]},"overall_feedback":"2-3 sentence summary."}
-Verdicts: "Strong" (8-10), "Adequate" (5-7), "Needs Work" (0-4)`,
-      messages: [{
-        role: 'user',
-        content: `QUESTION (${question?.type} - ${question?.category}): ${question?.text}
+Verdicts: "Strong" (8-10), "Adequate" (5-7), "Needs Work" (0-4)
+
+QUESTION (${question?.type} - ${question?.category}): ${question?.text}
 EXPECTED CONCEPTS: ${question?.hint}
-RUBRIC: ${rubric.map((r) => r.criterion).join('; ')}
-CANDIDATE ANSWER: ${answerText}`,
-      }],
+CANDIDATE ANSWER: ${answerText}`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature:     0.2,
+        maxOutputTokens: 1200,
+      },
     }),
   });
 
   const data = await response.json();
-  const text = data.content?.[0]?.text || '';
+
+  if (!response.ok) {
+    console.error('Gemini evaluation error:', data);
+    return evaluateAnswer(questionId, answerText);
+  }
+
+  const raw   = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const clean = raw.replace(/```json\n?|```\n?/g, '').trim();
+
   try {
-    return JSON.parse(text);
+    return JSON.parse(clean);
   } catch {
-    // AI response unparseable — fall back to rule-based
-    const { evaluateAnswer } = require('../utils/evaluator');
+    console.warn('Gemini evaluation response not valid JSON — falling back to rule-based.');
     return evaluateAnswer(questionId, answerText);
   }
 }

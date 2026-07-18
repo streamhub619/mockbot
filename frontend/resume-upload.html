@@ -15,31 +15,65 @@
   .dash-user { display:flex; align-items:center; gap:var(--space-4); flex-shrink:0; }
   .dash-greeting { font-size:var(--text-sm); color:var(--ink-soft); }
 
-  .upload-main { padding-top: var(--space-8); padding-bottom: var(--space-12); max-width: 640px; margin: 0 auto; padding-left: var(--space-6); padding-right: var(--space-6); }
+  .upload-main { padding-top:var(--space-8); padding-bottom:var(--space-12); max-width:640px; margin:0 auto; padding-left:var(--space-6); padding-right:var(--space-6); }
 
-  .journey { margin-bottom: var(--space-8); }
-  .journey .path-label-row { display:flex; justify-content:space-between; margin-top: var(--space-2); }
-  .journey .path-label-row span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--mist); }
-  .journey .path-label-row span.current { color: var(--sage); font-weight:600; }
+  .journey { margin-bottom:var(--space-8); }
+  .journey .path-label-row { display:flex; justify-content:space-between; margin-top:var(--space-2); }
+  .journey .path-label-row span { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--mist); }
+  .journey .path-label-row span.current { color:var(--sage); font-weight:600; }
 
-  .upload-intro { margin-bottom: var(--space-8); }
-  .upload-intro p { color: var(--mist); }
+  .upload-intro { margin-bottom:var(--space-6); }
+  .upload-intro p { color:var(--mist); }
 
-  .dropzone { display: block; border: 2px dashed var(--mist-soft); border-radius: var(--radius-md); padding: var(--space-8); text-align: center; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
-  .dropzone:hover, .dropzone.is-dragover { border-color: var(--sage); background: var(--sage-soft); }
-  .dropzone-icon { color: var(--mist); margin-bottom: var(--space-2); display: flex; justify-content: center; transition: color 0.2s ease; }
-  .dropzone:hover .dropzone-icon, .dropzone.is-dragover .dropzone-icon { color: var(--sage); }
-  .dropzone-text { font-size: var(--text-sm); color: var(--ink-soft); margin-bottom: var(--space-1); }
-  .dropzone-hint { font-size: var(--text-xs); color: var(--mist); }
-  .dropzone input[type="file"] { display: none; }
+  /* ── Mode toggle ── */
+  .mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    background: var(--mist-soft);
+    padding: 4px;
+    border-radius: var(--radius-md);
+  }
+  .mode-btn {
+    padding: var(--space-3) var(--space-4);
+    border-radius: calc(var(--radius-md) - 4px);
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    text-align: left;
+    transition: background 0.18s, color 0.18s;
+    background: transparent;
+    color: var(--mist);
+    line-height: 1.4;
+  }
+  .mode-btn.active {
+    background: var(--paper-raised);
+    color: var(--ink);
+    box-shadow: var(--shadow-card);
+  }
+  .mode-btn .mode-label { display: block; }
+  .mode-btn .mode-desc  { display: block; font-size: var(--text-xs); font-weight: 400; margin-top: 2px; color: var(--mist); }
+  .mode-btn.active .mode-desc { color: var(--ink-soft); }
 
-  .file-selected { display: none; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--sage-soft); border-radius: var(--radius-sm); margin-top: var(--space-3); }
-  .file-selected-name { font-size: var(--text-sm); color: var(--ink); font-weight: 500; }
-  .file-selected-size { font-size: var(--text-xs); color: var(--mist); margin-left: var(--space-2); }
-  .file-remove { background: none; border: none; color: var(--clay); font-size: var(--text-xs); cursor: pointer; font-family: var(--font-body); font-weight: 600; }
+  /* ── File drop zone ── */
+  .dropzone { display:block; border:2px dashed var(--mist-soft); border-radius:var(--radius-md); padding:var(--space-8); text-align:center; cursor:pointer; transition:border-color 0.2s ease, background 0.2s ease; }
+  .dropzone:hover, .dropzone.is-dragover { border-color:var(--sage); background:var(--sage-soft); }
+  .dropzone-icon { color:var(--mist); margin-bottom:var(--space-2); display:flex; justify-content:center; transition:color 0.2s ease; }
+  .dropzone:hover .dropzone-icon, .dropzone.is-dragover .dropzone-icon { color:var(--sage); }
+  .dropzone-text { font-size:var(--text-sm); color:var(--ink-soft); margin-bottom:var(--space-1); }
+  .dropzone-hint { font-size:var(--text-xs); color:var(--mist); }
+  .dropzone input[type="file"] { display:none; }
 
-  textarea#job-description { min-height: 140px; resize: vertical; font-family: var(--font-body); }
-  .gentle-hint { display: none; font-size: var(--text-sm); color: var(--clay); margin-top: var(--space-3); margin-bottom: var(--space-3); }
+  .file-selected { display:none; align-items:center; justify-content:space-between; padding:var(--space-3) var(--space-4); background:var(--sage-soft); border-radius:var(--radius-sm); margin-top:var(--space-3); }
+  .file-selected-name { font-size:var(--text-sm); color:var(--ink); font-weight:500; }
+  .file-selected-size { font-size:var(--text-xs); color:var(--mist); margin-left:var(--space-2); }
+  .file-remove { background:none; border:none; color:var(--clay); font-size:var(--text-xs); cursor:pointer; font-family:var(--font-body); font-weight:600; }
+
+  textarea#job-description { min-height:140px; resize:vertical; font-family:var(--font-body); }
+  .gentle-hint { display:none; font-size:var(--text-sm); color:var(--clay); margin-top:var(--space-3); margin-bottom:var(--space-3); }
 </style>
 </head>
 <body>
@@ -49,11 +83,11 @@
     <div class="dash-logo">MockBot</div>
     <nav class="dash-nav">
       <a href="dashboard.html">Dashboard</a>
+      <a href="history.html">History</a>
       <a href="mock-roulette.html">Mock Roulette</a>
     </nav>
     <div class="dash-user">
       <span class="dash-greeting">Hi, <span class="js-user-name">there</span></span>
-      <!-- FIX: single class attribute -->
       <a href="#" class="btn btn-quiet js-logout">Log out</a>
     </div>
   </div>
@@ -63,12 +97,9 @@
 
   <div class="journey">
     <div class="path-bar">
-      <div class="path-stone is-active"></div>
-      <div class="path-line"></div>
-      <div class="path-stone"></div>
-      <div class="path-line"></div>
-      <div class="path-stone"></div>
-      <div class="path-line"></div>
+      <div class="path-stone is-active"></div><div class="path-line"></div>
+      <div class="path-stone"></div><div class="path-line"></div>
+      <div class="path-stone"></div><div class="path-line"></div>
       <div class="path-stone"></div>
     </div>
     <div class="path-label-row">
@@ -81,10 +112,23 @@
 
   <div class="upload-intro">
     <h1>Let's get your questions ready</h1>
-    <p>Add your resume and the job you're aiming for, and we'll tailor questions to both. Nothing here goes anywhere beyond building your session.</p>
+    <p>Add your resume and the job you're aiming for, then choose how you'd like your questions generated.</p>
   </div>
 
-  <div class="card" style="margin-bottom: var(--space-6);">
+  <!-- Mode toggle -->
+  <div class="mode-toggle" role="group" aria-label="Question mode">
+    <button type="button" class="mode-btn active" id="mode-ai" data-mode="ai_tailored">
+      <span class="mode-label">✦ AI Mode</span>
+      <span class="mode-desc">Gemini reads your resume and JD to write questions just for you</span>
+    </button>
+    <button type="button" class="mode-btn" id="mode-rules" data-mode="resume_tailored">
+      <span class="mode-label">⊞ Rules Mode</span>
+      <span class="mode-desc">Skill-matched questions from the database, scored by rubric</span>
+    </button>
+  </div>
+
+  <!-- Resume upload -->
+  <div class="card" style="margin-bottom:var(--space-6);">
     <h3>Resume</h3>
     <label class="dropzone" id="dropzone" for="resume-input">
       <div id="dropzone-empty">
@@ -94,7 +138,7 @@
           </svg>
         </div>
         <div class="dropzone-text">Drop your resume here, or click to browse</div>
-        <div class="dropzone-hint">PDF or DOCX — up to 5MB</div>
+        <div class="dropzone-hint">PDF or DOCX — up to 5 MB</div>
       </div>
       <input type="file" id="resume-input" accept=".pdf,.docx">
     </label>
@@ -107,22 +151,25 @@
     </div>
   </div>
 
-  <div class="card" style="margin-bottom: var(--space-6);">
+  <!-- Job description -->
+  <div class="card" style="margin-bottom:var(--space-6);">
     <h3>Job description</h3>
     <div class="field">
       <label for="job-description">Paste the job posting</label>
       <textarea id="job-description" placeholder="Paste the responsibilities and requirements from the listing you're targeting..."></textarea>
       <div class="field-hint">The more detail, the more relevant your questions will be.</div>
     </div>
-    <div class="field" style="margin-bottom: 0;">
+    <div class="field" style="margin-bottom:0;">
       <label for="target-role">Target role <span class="text-mist">(optional)</span></label>
       <input type="text" id="target-role" placeholder="e.g. Backend Engineer">
     </div>
   </div>
 
-  <div class="gentle-hint" id="gentle-hint">Add your resume above so we can tailor the questions to you.</div>
+  <div class="gentle-hint" id="gentle-hint"></div>
 
-  <button type="button" class="btn btn-primary" id="continue-btn" style="width:100%; justify-content:center;">Generate my questions</button>
+  <button type="button" class="btn btn-primary" id="continue-btn" style="width:100%;justify-content:center;">
+    Generate my questions
+  </button>
 
 </main>
 
