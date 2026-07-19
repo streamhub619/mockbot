@@ -151,6 +151,13 @@ MAX_FILE_SIZE_MB=
 # AI features (optional — app works without these using rule-based fallback)
 GEMINI_API_KEY=
 
+# Password reset links
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=   # from Google Account → Security → App passwords
+EMAIL_FROM=
+
 # CORS — set this if your frontend is served from a non-default port
 FRONTEND_URL=
 ```

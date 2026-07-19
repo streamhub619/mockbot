@@ -5,7 +5,7 @@
 
 const nodemailer = require('nodemailer');
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5500';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Build a transporter only when SMTP credentials are present
 function getTransporter() {
