@@ -128,31 +128,31 @@ The backend API runs on `http://localhost:5000`. The `API_BASE` constant in `fro
 
 ```env
 # Server
-PORT=5000
-NODE_ENV=development
+PORT=
+NODE_ENV=
 
 # PostgreSQL — use DATABASE_URL or individual vars
-DATABASE_URL=postgresql://postgres:password@localhost:5432/mockbot_db
+DATABASE_URL=
 
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=mockbot_db
-DB_USER=postgres
-DB_PASSWORD=your_password
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
 
 # JWT
-JWT_SECRET=change_this_to_a_long_random_string
-JWT_EXPIRES_IN=7d
+JWT_SECRET=
+JWT_EXPIRES_IN=
 
 # File uploads
 UPLOAD_DIR=uploads
-MAX_FILE_SIZE_MB=5
+MAX_FILE_SIZE_MB=
 
 # AI features (optional — app works without these using rule-based fallback)
-GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_KEY=
 
 # CORS — set this if your frontend is served from a non-default port
-FRONTEND_URL=http://localhost:5500
+FRONTEND_URL=
 ```
 
 ---
