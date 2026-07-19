@@ -1,13 +1,16 @@
 const express  = require('express');
 const bcrypt   = require('bcryptjs');
+const crypto   = require('crypto');
 const { body, validationResult } = require('express-validator');
 
-const UserModel       = require('../models/user.model');
+const UserModel                  = require('../models/user.model');
 const { generateToken, authenticate } = require('../middleware/auth');
+const { sendPasswordResetEmail } = require('../utils/mailer');
+const { query }                  = require('../config/db');
 
 const router = express.Router();
 
-// POST /api/auth/register
+// ─── POST /api/auth/register ──────────────────────────────────────────────────
 router.post(
   '/register',
   [
@@ -20,9 +23,7 @@ router.post(
   ],
   async (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     try {
       const { fullName, email, password } = req.body;
@@ -33,9 +34,8 @@ router.post(
       }
 
       const passwordHash = await bcrypt.hash(password, 12);
-      const user = await UserModel.create({ fullName, email, passwordHash });
-
-      const token = generateToken(user.id);
+      const user         = await UserModel.create({ fullName, email, passwordHash });
+      const token        = generateToken(user.id);
 
       return res.status(201).json({
         message: 'Account created successfully.',
@@ -48,7 +48,7 @@ router.post(
   }
 );
 
-// POST /api/auth/login
+// ─── POST /api/auth/login ─────────────────────────────────────────────────────
 router.post(
   '/login',
   [
@@ -57,22 +57,16 @@ router.post(
   ],
   async (req, res, next) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     try {
       const { email, password } = req.body;
 
       const user = await UserModel.findByEmail(email);
-      if (!user) {
-        return res.status(401).json({ error: 'Invalid email or password.' });
-      }
+      if (!user) return res.status(401).json({ error: 'Invalid email or password.' });
 
       const valid = await bcrypt.compare(password, user.password_hash);
-      if (!valid) {
-        return res.status(401).json({ error: 'Invalid email or password.' });
-      }
+      if (!valid) return res.status(401).json({ error: 'Invalid email or password.' });
 
       const token = generateToken(user.id);
 
@@ -87,21 +81,120 @@ router.post(
   }
 );
 
-// GET /api/auth/me  — returns the current authenticated user
+// ─── GET /api/auth/me ─────────────────────────────────────────────────────────
 router.get('/me', authenticate, async (req, res, next) => {
   try {
     const user = await UserModel.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
     return res.json({
-      id: user.id,
-      fullName: user.full_name,
-      email: user.email,
+      id:        user.id,
+      fullName:  user.full_name,
+      email:     user.email,
       createdAt: user.created_at,
     });
   } catch (err) {
     next(err);
   }
 });
+
+// ─── POST /api/auth/forgot-password ──────────────────────────────────────────
+// Always returns the same success message whether or not the email exists,
+// to prevent email enumeration attacks.
+router.post(
+  '/forgot-password',
+  [body('email').isEmail().normalizeEmail().withMessage('A valid email is required.')],
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const GENERIC_MESSAGE = 'If that email is registered, a reset link has been sent.';
+
+    try {
+      const { email } = req.body;
+      const user      = await UserModel.findByEmail(email);
+
+      if (!user) {
+        // Don't reveal whether the email exists
+        return res.json({ message: GENERIC_MESSAGE });
+      }
+
+      // Invalidate any existing unused tokens for this user
+      await query(
+        `UPDATE password_resets SET used = TRUE
+         WHERE user_id = $1 AND used = FALSE`,
+        [user.id]
+      );
+
+      // Generate a secure 64-char hex token, valid for 1 hour
+      const token     = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // +1 hour
+
+      await query(
+        `INSERT INTO password_resets (user_id, token, expires_at)
+         VALUES ($1, $2, $3)`,
+        [user.id, token, expiresAt]
+      );
+
+      await sendPasswordResetEmail(email, user.full_name, token);
+
+      return res.json({ message: GENERIC_MESSAGE });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// ─── POST /api/auth/reset-password ───────────────────────────────────────────
+router.post(
+  '/reset-password',
+  [
+    body('token').notEmpty().withMessage('Reset token is required.'),
+    body('password')
+      .isLength({ min: 8 }).withMessage('Password must be at least 8 characters.')
+      .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter.')
+      .matches(/[0-9]/).withMessage('Password must contain at least one number.'),
+  ],
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    try {
+      const { token, password } = req.body;
+
+      // Look up a valid, unused, unexpired token
+      const { rows: [reset] } = await query(
+        `SELECT id, user_id FROM password_resets
+         WHERE token = $1
+           AND used = FALSE
+           AND expires_at > NOW()`,
+        [token]
+      );
+
+      if (!reset) {
+        return res.status(400).json({
+          error: 'This reset link is invalid or has expired. Please request a new one.',
+        });
+      }
+
+      // Update the password
+      const passwordHash = await bcrypt.hash(password, 12);
+      await query(
+        `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+        [passwordHash, reset.user_id]
+      );
+
+      // Mark the token as used so it cannot be reused
+      await query(
+        `UPDATE password_resets SET used = TRUE WHERE id = $1`,
+        [reset.id]
+      );
+
+      return res.json({ message: 'Password updated. You can now log in.' });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 module.exports = router;

@@ -6,13 +6,13 @@ const API_BASE = 'http://localhost:5000/api';
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 const Auth = {
-  getToken()      { return localStorage.getItem('mb_token'); },
-  setToken(t)     { localStorage.setItem('mb_token', t); },
-  removeToken()   { localStorage.removeItem('mb_token'); },
-  getUser()       { return JSON.parse(localStorage.getItem('mb_user') || 'null'); },
-  setUser(u)      { localStorage.setItem('mb_user', JSON.stringify(u)); },
-  removeUser()    { localStorage.removeItem('mb_user'); },
-  isLoggedIn()    { return !!Auth.getToken(); },
+  getToken()    { return localStorage.getItem('mb_token'); },
+  setToken(t)   { localStorage.setItem('mb_token', t); },
+  removeToken() { localStorage.removeItem('mb_token'); },
+  getUser()     { return JSON.parse(localStorage.getItem('mb_user') || 'null'); },
+  setUser(u)    { localStorage.setItem('mb_user', JSON.stringify(u)); },
+  removeUser()  { localStorage.removeItem('mb_user'); },
+  isLoggedIn()  { return !!Auth.getToken(); },
   logout() {
     Auth.removeToken();
     Auth.removeUser();
@@ -28,16 +28,11 @@ async function apiFetch(path, options = {}) {
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res  = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
-  if (res.status === 401) {
-    Auth.logout();
-    return;
-  }
+  if (res.status === 401) { Auth.logout(); return; }
 
   const data = await res.json();
   if (!res.ok) {
@@ -72,6 +67,20 @@ const AuthAPI = {
   async me() {
     return apiFetch('/auth/me');
   },
+
+  async forgotPassword(email) {
+    return apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      body:   JSON.stringify({ email }),
+    });
+  },
+
+  async resetPassword(token, password) {
+    return apiFetch('/auth/reset-password', {
+      method: 'POST',
+      body:   JSON.stringify({ token, password }),
+    });
+  },
 };
 
 // ─── Resume API ───────────────────────────────────────────────────────────────
@@ -96,21 +105,12 @@ const JobDescriptionAPI = {
 
 // ─── Session API ──────────────────────────────────────────────────────────────
 const SessionAPI = {
-  /**
-   * Create a new interview session.
-   * @param {number} resumeId
-   * @param {number} jobDescriptionId
-   * @param {'ai_tailored'|'resume_tailored'} sessionType
-   *   'ai_tailored'    — Gemini generates questions + evaluates answers
-   *   'resume_tailored'— DB questions matched by skill, rubric evaluator
-   */
   async create(resumeId, jobDescriptionId, sessionType = 'resume_tailored') {
     return apiFetch('/sessions', {
       method: 'POST',
       body:   JSON.stringify({ resumeId, jobDescriptionId, sessionType }),
     });
   },
-
   async get(sessionId)  { return apiFetch(`/sessions/${sessionId}`); },
   async list()          { return apiFetch('/sessions'); },
   async complete(id)    { return apiFetch(`/sessions/${id}/complete`, { method: 'PATCH' }); },
@@ -129,12 +129,12 @@ const AnswerAPI = {
 
 // ─── Roulette API ─────────────────────────────────────────────────────────────
 const RouletteAPI = {
-  async join()               { return apiFetch('/roulette/join', { method: 'POST' }); },
-  async leave()              { return apiFetch('/roulette/leave', { method: 'DELETE' }); },
-  async pollMatch()          { return apiFetch('/roulette/match'); },
-  async getMatch(matchId)    { return apiFetch(`/roulette/matches/${matchId}`); },
-  async submitAnswer(matchId, answerText) {
-    return apiFetch(`/roulette/matches/${matchId}/submit`, {
+  async join()            { return apiFetch('/roulette/join', { method: 'POST' }); },
+  async leave()           { return apiFetch('/roulette/leave', { method: 'DELETE' }); },
+  async pollMatch()       { return apiFetch('/roulette/match'); },
+  async getMatch(id)      { return apiFetch(`/roulette/matches/${id}`); },
+  async submitAnswer(id, answerText) {
+    return apiFetch(`/roulette/matches/${id}/submit`, {
       method: 'POST',
       body:   JSON.stringify({ answerText }),
     });

@@ -6,7 +6,6 @@
 <title>MockBot — Log in</title>
 <link rel="stylesheet" href="design-system.css">
 <style>
-  /* Page-specific layout only — component styles (btn, field, card) live in design-system.css */
   body.auth-page {
     min-height: 100vh;
     display: flex;
@@ -44,7 +43,6 @@
     padding: 0;
   }
   .auth-switch button:hover { text-decoration: underline; }
-  #name-field, #confirm-field { display: none; }
   .auth-status {
     display: none;
     font-size: var(--text-sm);
@@ -54,6 +52,23 @@
     background: var(--sage-soft);
     color: var(--ink-soft);
   }
+  .forgot-link {
+    display: block;
+    text-align: right;
+    font-size: var(--text-xs);
+    color: var(--mist);
+    margin-top: calc(var(--space-1) * -1);
+    margin-bottom: var(--space-4);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    padding: 0;
+  }
+  .forgot-link:hover { color: var(--sage); text-decoration: underline; }
+
+  /* Hidden by default — shown based on mode */
+  #name-field, #confirm-field, #forgot-email-field { display: none; }
 </style>
 </head>
 <body class="auth-page">
@@ -70,35 +85,50 @@
     <div class="auth-status" id="status-message"></div>
 
     <form id="auth-form" novalidate>
+      <!-- Register only -->
       <div class="field" id="name-field">
         <label for="name">Full name</label>
         <input type="text" id="name" name="name" placeholder="Jane Doe">
         <div class="field-error" id="name-error" style="display:none;"></div>
       </div>
 
-      <div class="field">
+      <!-- Login + Register -->
+      <div class="field" id="email-wrapper">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" placeholder="you@example.com">
         <div class="field-error" id="email-error" style="display:none;"></div>
       </div>
 
-      <div class="field">
+      <!-- Login + Register -->
+      <div class="field" id="password-wrapper">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" placeholder="At least 8 characters">
         <div class="field-error" id="password-error" style="display:none;"></div>
       </div>
 
+      <!-- Login only — Forgot password link -->
+      <button type="button" class="forgot-link" id="forgot-link">Forgot your password?</button>
+
+      <!-- Register only -->
       <div class="field" id="confirm-field">
         <label for="confirm">Confirm password</label>
         <input type="password" id="confirm" name="confirm" placeholder="Re-enter your password">
         <div class="field-error" id="confirm-error" style="display:none;"></div>
       </div>
 
-      <button type="submit" class="btn btn-primary" id="submit-btn" style="width:100%; justify-content:center;">Log in</button>
+      <!-- Forgot password only -->
+      <div class="field" id="forgot-email-field">
+        <label for="forgot-email">Your email address</label>
+        <input type="email" id="forgot-email" name="forgot-email" placeholder="you@example.com">
+        <div class="field-error" id="forgot-email-error" style="display:none;"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submit-btn"
+        style="width:100%; justify-content:center;">Log in</button>
     </form>
   </div>
 
-  <div class="auth-switch">
+  <div class="auth-switch" id="switch-row">
     <span id="switch-prompt">Don't have an account?</span>
     <button type="button" id="switch-btn">Create one</button>
   </div>
@@ -106,6 +136,5 @@
 
 <script src="api.js"></script>
 <script src="login-script.js"></script>
-
 </body>
 </html>
