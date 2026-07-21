@@ -45,7 +45,7 @@ mockbot/
 │   ├── history-script.js
 │   ├── mock-roulette.html   # Peer matching and roulette session flow
 │   ├── roulette-script.js
-│   └── style-guide.html     # Design system reference (dev only, git-ignored)
+│   └── style-guide.html     # Design system reference (dev only)
 ├── src/
 │   ├── index.js             # Express app entry point
 │   ├── config/
@@ -128,38 +128,31 @@ The backend API runs on `http://localhost:5000`. The `API_BASE` constant in `fro
 
 ```env
 # Server
-PORT=
-NODE_ENV=
+PORT=5000
+NODE_ENV=development
 
 # PostgreSQL — use DATABASE_URL or individual vars
-DATABASE_URL=
+DATABASE_URL=postgresql://postgres:password@localhost:5432/mockbot_db
 
-DB_HOST=
-DB_PORT=
-DB_NAME=
-DB_USER=
-DB_PASSWORD=
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=mockbot_db
+DB_USER=postgres
+DB_PASSWORD=your_password
 
 # JWT
-JWT_SECRET=
-JWT_EXPIRES_IN=
+JWT_SECRET=change_this_to_a_long_random_string
+JWT_EXPIRES_IN=7d
 
 # File uploads
 UPLOAD_DIR=uploads
-MAX_FILE_SIZE_MB=
+MAX_FILE_SIZE_MB=5
 
 # AI features (optional — app works without these using rule-based fallback)
-GEMINI_API_KEY=
-
-# Password reset links
-SMTP_HOST=
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASS=   # from Google Account → Security → App passwords
-EMAIL_FROM=
+GEMINI_API_KEY=your_gemini_api_key
 
 # CORS — set this if your frontend is served from a non-default port
-FRONTEND_URL=
+FRONTEND_URL=http://localhost:5500
 ```
 
 ---
