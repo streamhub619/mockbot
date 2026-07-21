@@ -64,9 +64,7 @@ const AuthAPI = {
     return data.user;
   },
 
-  async me() {
-    return apiFetch('/auth/me');
-  },
+  async me() { return apiFetch('/auth/me'); },
 
   async forgotPassword(email) {
     return apiFetch('/auth/forgot-password', {
@@ -129,15 +127,47 @@ const AnswerAPI = {
 
 // ─── Roulette API ─────────────────────────────────────────────────────────────
 const RouletteAPI = {
-  async join()            { return apiFetch('/roulette/join', { method: 'POST' }); },
-  async leave()           { return apiFetch('/roulette/leave', { method: 'DELETE' }); },
-  async pollMatch()       { return apiFetch('/roulette/match'); },
-  async getMatch(id)      { return apiFetch(`/roulette/matches/${id}`); },
-  async submitAnswer(id, answerText) {
-    return apiFetch(`/roulette/matches/${id}/submit`, {
+  /**
+   * Join the waiting pool with a preferred role.
+   * @param {'interviewer'|'interviewee'|'any'} preferredRole
+   */
+  async join(preferredRole = 'any') {
+    return apiFetch('/roulette/join', {
+      method: 'POST',
+      body:   JSON.stringify({ preferredRole }),
+    });
+  },
+
+  async leave() {
+    return apiFetch('/roulette/leave', { method: 'DELETE' });
+  },
+
+  /** Poll while waiting for a partner. */
+  async pollMatch() {
+    return apiFetch('/roulette/match');
+  },
+
+  /** Get full match details including all rounds. */
+  async getMatch(matchId) {
+    return apiFetch(`/roulette/matches/${matchId}`);
+  },
+
+  /**
+   * Interviewee submits their answer for a specific round.
+   * @param {number} matchId
+   * @param {number} roundNumber  1-based round index
+   * @param {string} answerText
+   */
+  async submitRound(matchId, roundNumber, answerText) {
+    return apiFetch(`/roulette/matches/${matchId}/rounds/${roundNumber}/submit`, {
       method: 'POST',
       body:   JSON.stringify({ answerText }),
     });
+  },
+
+  /** Interviewer advances to the next round after reviewing the result. */
+  async advanceRound(matchId) {
+    return apiFetch(`/roulette/matches/${matchId}/advance`, { method: 'PATCH' });
   },
 };
 

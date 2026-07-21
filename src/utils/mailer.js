@@ -29,7 +29,7 @@ function getTransporter() {
  * @param {string} token     Reset token (64-char hex)
  */
 async function sendPasswordResetEmail(toEmail, toName, token) {
-  const resetLink = `${FRONTEND_URL}/reset-password.html?token=${token}`;
+  const resetLink = `${FRONTEND_URL}/reset-password?token=${token}`;
   const firstName = toName?.split(' ')[0] || 'there';
 
   const transporter = getTransporter();
