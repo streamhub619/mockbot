@@ -174,7 +174,7 @@ QUESTION TYPE: ${questionType}
 QUESTION: ${questionText}
 CANDIDATE ANSWER: ${answerText}`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   try {
     const response = await fetch(url, {

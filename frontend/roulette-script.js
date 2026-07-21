@@ -17,6 +17,9 @@ let pollInterval    = null;
 let timerInterval   = null;
 let timerSeconds    = 0;
 let submitting      = false;
+let displayedRound = null;
+let displayedSubmitted = null;
+let roundEndTime = null;
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const findBtn            = document.getElementById('find-btn');
@@ -138,28 +141,49 @@ function buildResultCard(round) {
 
 // ─── Timer ───────────────────────────────────────────────────────────────────
 function startRoundTimer(seconds = 180) {
-  stopTimer();
-  timerSeconds = seconds;
-  timerDisplay.style.display = '';
-  timerDisplay.classList.remove('warning');
+  console.log("Timer started");
 
-  timerInterval = setInterval(() => {
-    timerSeconds--;
-    timerDisplay.textContent = `⏱ ${formatTime(timerSeconds)}`;
-    if (timerSeconds <= 30) timerDisplay.classList.add('warning');
-    if (timerSeconds <= 0) {
-      stopTimer();
-      timerDisplay.textContent = 'Time\'s up!';
-      // Auto-submit with whatever they've typed
-      if (!submitting && answerInput.value.trim()) {
-        submitAnswerBtn.click();
-      }
+    stopTimer();
+
+    if (!roundEndTime) {
+        roundEndTime = Date.now() + seconds * 1000;
     }
-  }, 1000);
+
+    timerDisplay.style.display = '';
+    timerDisplay.classList.remove('warning');
+
+    timerInterval = setInterval(() => {
+
+        timerSeconds = Math.max(
+            0,
+            Math.floor((roundEndTime - Date.now()) / 1000)
+        );
+
+        timerDisplay.textContent =
+            `⏱ ${formatTime(timerSeconds)}`;
+
+        if (timerSeconds <= 30)
+            timerDisplay.classList.add('warning');
+
+        if (timerSeconds <= 0) {
+
+            stopTimer();
+
+            timerDisplay.textContent = "Time's up!";
+
+            if (!submitting && answerInput.value.trim()) {
+                submitAnswerBtn.click();
+            }
+
+        }
+
+    },1000);
+
 }
 
 // ─── Render a round ───────────────────────────────────────────────────────────
 function renderRound(round, answered) {
+  console.log("renderRound called", currentRound, new Date().toLocaleTimeString());
   const isInterviewer = myRole === 'interviewer';
   roundCounter.textContent = `Round ${currentRound} of ${totalRounds}`;
   renderPath(currentRound, totalRounds, rounds);
@@ -199,11 +223,15 @@ function renderRound(round, answered) {
       document.getElementById('answer-section').style.display = '';
       intervieweeResult.style.display = 'none';
       waitingMsgEl.style.display      = 'none';
-      answerInput.value               = '';
-      answerInput.disabled            = false;
-      submitAnswerBtn.disabled        = false;
-      submitting                      = false;
+      answerInput.disabled = false;
+      submitAnswerBtn.disabled = false;
+      submitting = false;
+
+      if (displayedRound !== currentRound) {
+      answerInput.value = '';
+      roundEndTime = null;
       startRoundTimer(180);
+      }
     }
   }
 }
@@ -222,7 +250,23 @@ function startSession() {
   }
 
   const round = rounds.find(r => r.round_number === currentRound);
-  if (round) renderRound(round, !!round.submitted_at);
+  if (round) {
+
+    const submitted = !!round.submitted_at;
+
+    if (
+        displayedRound !== currentRound ||
+        displayedSubmitted !== submitted
+    ) {
+
+        displayedRound = currentRound;
+        displayedSubmitted = submitted;
+
+        renderRound(round, submitted);
+
+    }
+
+}
 }
 
 // ─── Polling for round updates ────────────────────────────────────────────────
@@ -391,6 +435,10 @@ nextBtnInterviewer.addEventListener('click', async () => {
 
   try {
     await RouletteAPI.advanceRound(matchId);
+    displayedRound = null;
+    displayedSubmitted = null;
+    roundEndTime = null;
+    nextBtnInterviewer.disabled = true;
     // Poll will pick up the new current_round
   } catch (err) {
     console.error('Advance error:', err.message);

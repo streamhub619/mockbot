@@ -2,7 +2,7 @@
 
 const { query } = require('../config/db');
 
-const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent';
 
 async function callGemini(prompt, maxTokens = 2000) {
   const apiKey = process.env.GEMINI_API_KEY;
