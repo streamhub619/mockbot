@@ -7,7 +7,7 @@ const mammoth  = require('mammoth');
 const { authenticate }  = require('../middleware/auth');
 const { upload }        = require('../middleware/upload');
 const ResumeModel       = require('../models/resume.model');
-const { extractSkills } = require('../utils/skillExtractor');
+const { extractSkills } = require('../utils/skillextractor');
 
 const router = express.Router();
 router.use(authenticate);
