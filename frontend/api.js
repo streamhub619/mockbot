@@ -2,7 +2,7 @@
 //  MockBot — API Layer  (api.js)
 // =============================================================================
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = CONFIG.API_BASE;
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 const Auth = {
